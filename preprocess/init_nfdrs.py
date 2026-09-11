@@ -23,11 +23,11 @@ if __name__=="__main__":
 
     """ ------------( end normal configuration )------------ """
 
+    ## get the valid mask from a sample HRRR filfe
     tmpz = get_hrrr_forecast_48h(
         variables=["temperature_2m"],
         date=date(2020, 1, 1),
         )
-
     tmpds = nc.Dataset(sample_file, "r")
     m_valid = ~tmpds[sample_var][*sample_slice].mask
     tmpds.close()
@@ -47,6 +47,8 @@ if __name__=="__main__":
         mask_coverage_cutoff=config.backend["mask_coverage_cutoff"],
         )
 
+    ## open a group for all hrrr-domain data variables and load the
+    ## projected coordinate arrays, valid mask, and index mapping.
     zgrp = zarr.open(out_zarr_path, mode="w")
     if "hrrr" in zgrp.keys():
         if not overwrite_existing:
@@ -64,3 +66,4 @@ if __name__=="__main__":
         "geo_ref_out":gro,
         "coord_range_out":cro,
         })
+    print("finished")

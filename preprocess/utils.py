@@ -427,6 +427,10 @@ class RelationalConfig:
 
     def set(self, key_dict: dict, value: any) -> None:
         """ register a key dictionary mapping to an arbitrary value """
+        for i,(sk,_) in enumerate(self.store):
+            if sk == key_dict:
+                self.store[i] = (key_dict, value)
+                return
         self.store.append((key_dict, value))
 
     def get(self, query_dict: dict) -> any:

@@ -12,6 +12,7 @@ from pathlib import Path
 from pprint import pprint
 
 import config
+from utils import RelationalConfig
 
 def parse_zarr_menu_paths(zarr_store_path, menu_roots):
     """
@@ -93,8 +94,8 @@ if __name__=="__main__":
 
     load_meta = False
     load_cmaps = False
-    load_menu = False
-    check_bounds = True
+    load_menu = True
+    check_bounds = False
     #load_pgroups = False
     #load_domains = False
 
@@ -111,10 +112,13 @@ if __name__=="__main__":
                 }
         '''
         zgrp.attrs.update({
-            **config.frontend,
+            "norm":config.norm,
+            "labels"config.labels,
             #"regions":rconf,
             #"plots":config.plot_config,
             })
+
+    """ generate and store color maps """
 
     if load_cmaps:
         cmarr,cms = get_cmaps(
@@ -130,9 +134,67 @@ if __name__=="__main__":
         zgrp.attrs.update({"cmaps":{**config.cmap, "slices":cms}})
         print("got color maps")
 
+    """
+    use the zarr store structure to parse key-value relational configurations
+    for menus used to select arrays, and mapping arrays to paths in the store.
+
+    Also load the menu dependencies and triggers
+    """
+
     if load_menu:
         arrs = parse_zarr_menu_paths(out_zarr_path, ["/hrrr/itime"])
-        pprint(arrs)
+        args = config.menu_args
+        trigs = config.menu_triggers
+        resolved = {}
+        unresolved = list(args.keys())
+        ## iterate until all menus are resolved
+        while len(unresolved):
+            got_one = False
+            for k,a in args.items():
+                ## if already resolved, skip
+                if k in resolved.keys():
+                    continue
+                ## defer if still waiting on menu dependencies
+                if not all(v in resolved.keys() for v in a):
+                    continue
+
+                resolved[k] = RelationalConfig()
+                #cur_options = []
+                for ar in arrs:
+                    ## skip if this array not dependent on this menu
+                    if not k in ar["keys"]:
+                        continue
+                    md = dict(zip(ar["keys"], ar["vals"]))
+                    cur_key = {ak:md[ak] for ak in a}
+                    try:
+                        cur_val = resolved[k].get(cur_key)
+                    except KeyError as e:
+                        cur_val = []
+                    if md[k] in cur_val:
+                        continue
+                    cur_val.append(md[k])
+                    resolved[k].set(cur_key, cur_val)
+                unresolved.remove(k)
+                got_one = True
+            if not got_one:
+                raise ValueError(
+                    f"Can't resolve menus after:",
+                    {rk:rc.store for rk,rc in resolved.items()}
+                    )
+
+
+        array_paths = RelationalConfig()
+        for ar in arrs:
+            md = dict(zip(ar["keys"], ar["vals"]))
+            array_paths.set(md, ar["path"])
+        zgrp.attrs.update({)
+        zgrp.attrs.update({
+            "menu":{
+                "options":{k:m.store for k,m in resolved.items()},
+                "arrays":array_paths.store,
+                "triggers":trigs,
+                }
+            })
 
     if check_bounds:
         arrs = parse_zarr_menu_paths(out_zarr_path, ["/hrrr/itime"])
@@ -152,30 +214,3 @@ if __name__=="__main__":
                 f"\nmax:       {np.nanmax(x):.3f}",
                 f"\nstddev:    {np.nanstd(x):.3f}",
                 )
-
-    '''
-    if load_pgroups:
-        vecs = {}
-        for pgk in config.frontend["labels"]["pgroups"]:
-            vecs[pgk] = {}
-            for rk in config.frontend["labels"]["regions"]:
-                print(f"getting {rk} {pgk}")
-                keep_cols = config.backend["keep_pgroup_properties"][pgk]
-                keep_cols.append("geometry")
-                gj_path = vec_dir.joinpath(f"{pgk}_{rk}.geojson")
-                tmpgj = gpd.read_file(gj_path)
-                drop_cols = [
-                    c for c in tmpgj.columns
-                    if c not in keep_cols
-                    ]
-                tmpgj = tmpgj.drop(columns=drop_cols)
-                tmpgj["UID"] = [f"{rk}_{pgk}_{i}" for i in range(len(tmpgj))]
-                vecs[pgk][rk] = tmpgj.to_geo_dict()
-        zgrp.attrs.update({"pgroups":vecs})
-    '''
-
-    '''
-    if load_domains:
-        raise ValueError("domain perimeter geojsons not supported")
-    '''
-    print("finished")

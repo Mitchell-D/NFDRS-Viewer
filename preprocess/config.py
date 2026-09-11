@@ -1,5 +1,3 @@
-num_fuel_models = 1
-
 ## encode the group structure options of the zarr store, which is used on
 ## server to traverse the tree and determine the current catalog of arrays.
 ## The first entry in each component list is a unique string group name,
@@ -15,74 +13,22 @@ num_fuel_models = 1
 ## each nested group entry is a 2-tuple (group_key:str, subgroups:list)
 ## where each element of subgroups is either a string (terminal subgroup)
 ## or another 2-tuple (subgroup with child groups)
-zarr_key_groups = [
-    ("itime", [ ("variable", ["mtype", "model", "timelag"]) ]),
-    ]
-
-
-## full array shape: (1205, 2181)
-zarr_format = [
-    [[{"time":"hourly"}], {"dims":["hour"]}],
-    [[{"time":"daily"}], {"dims":["day"]}],
-    [
-        [{"variable":k} for k in ["ftemp", "dfm", "sc", "erc", "bi", "ic"]],
-        {
-            "dims":["hour", "y", "x"],
-            "chunks":(6,180,220), ## ~475 KB per chunk
-            "shards":(24,1080,2200), ## (8, 7, 10) chunk grid; ~226 MB
-            "fill_value":-9999.,
-            "dtype":"u2",
-            "compressors":[
-                {
-                    "name":"blosc",
-                    "configuration":{
-                        "cname":"zstd",
-                        "clevel":4,
-                        "shuffle":"bitshuffle",
-                        "typesize":2,
-                        "blocksize":0, ## determined at runtime
-                        },
-                    },
-                ],
-            },
-        ],
-    [
-        [{"variable":fk} for fk in ["mc", "gsi", "kbdi"]],
-        {
-            "dims":["day", "y", "x"],
-            "chunks":(2, 180, 220),
-            "shards":(2, 1080, 2200),
-            "fill_value":-9999.,
-            "dtype":"u2",
-            "compressors":[
-                {
-                    "name":"blosc",
-                    "configuration":{
-                        "cname":"zstd",
-                        "clevel":4,
-                        "shuffle":"bitshuffle",
-                        "typesize":2,
-                        "blocksize":0, ## determined at runtime
-                        },
-                    },
-                ],
-            },
-        ],
-    ]
 
 ## map partial signatures to normalization method kwargs, plus an extra
 ## "methods" key indicating which normalization function to run.
 norm_resolution = 2048
 norm_mask = 65535
 norm = [
+    ## don't normalize hourly and daily valid time labels
     [[{"time":"hourly"}, {"time":"daily"}], {"method":"none"}],
-    [[{"variable":"ftemp"}], {
-        "method":"uint16",
-        "nmin":-30,
-        "nmax":60,
-        "nres":norm_resolution,
-        "nmask":norm_mask
-        }],
+    ## normalize data variables to uint16
+    #[[{"variable":"ftemp"}], {
+    #    "method":"uint16",
+    #    "nmin":-30,
+    #    "nmax":60,
+    #    "nres":norm_resolution,
+    #    "nmask":norm_mask
+    #    }],
     [[{"variable":"gsi"}], {
         "method":"uint16",
         "nmin":0,
@@ -97,35 +43,14 @@ norm = [
         "nres":norm_resolution,
         "nmask":norm_mask
         }],
-    [[{"variable":"ic"}], {
+    [[{"variable":vk} for vk in ["ic", "bi", "erc"]], {
         "method":"uint16",
         "nmin":0,
         "nmax":100,
         "nres":norm_resolution,
         "nmask":norm_mask
         }],
-    [[{"variable":"bi"}], {
-        "method":"uint16",
-        "nmin":0,
-        "nmax":100,
-        "nres":norm_resolution,
-        "nmask":norm_mask
-        }],
-    [[{"variable":"erc"}], {
-        "method":"uint16",
-        "nmin":0,
-        "nmax":100,
-        "nres":norm_resolution,
-        "nmask":norm_mask
-        }],
-    [[{"variable":"sc"}], {
-        "method":"uint16",
-        "nmin":0,
-        "nmax":50,
-        "nres":norm_resolution,
-        "nmask":norm_mask
-        }],
-    [[{"variable":"dfm"}], {
+    [[{"variable":vk} for vk in ["sc", "dfm"]], {
         "method":"uint16",
         "nmin":0,
         "nmax":50,
@@ -148,14 +73,16 @@ norm = [
         }],
     ]
 
+## menu keys that trigger updates to each dependent menu
 menu_triggers = {
     "itime":[],
     "feat":["itime"],
-    "timelag":["feat"],
-    "model":["feat"],
-    "mtype":["feat"],
+    "timelag":["variable"],
+    "model":["variable"],
+    "mtype":["variable"],
     }
 
+## menu keys that are used to determine value options for each menu
 menu_args = {
     "itime":[],
     "variable":["itime"],
@@ -164,32 +91,15 @@ menu_args = {
     "mtype":["itime", "variable"],
     }
 
-frontend = {
-    "labels":{
-        ## all feature and feature group labels must be mutually unique.
-        "feat":{
-            "dfm":["dfm-1", "dfm-10", "dfm-100", "dfm-1000"],
-            #"kbdi":[f"kbdi-m{i}" for i in range(num_fuel_models)],
-            "sc":[f"sc-m{i}" for i in range(num_fuel_models)],
-            "erc":[f"erc-m{i}" for i in range(num_fuel_models)],
-            "bi":[f"bi-m{i}" for i in range(num_fuel_models)],
-            "ic":[f"ic-m{i}" for i in range(num_fuel_models)],
-            "mc":["mc-herb", "mc-wood"],
-            "gsi":None,
-            "kbdi":None,
-            "ftemp":None,
-            },
-        "metric_spatial":None,
-        "pgroup":["counties"],
-        "itime":None, ## set dynamically by prep_nfdrs.py
-        },
+## frontend configuration consists of all l
+num_fuel_models = 5
+labels = {
     "long_labels":{
-        ## single-level dict mapping feature or feature group labels to
+        ## single-level dict mapping any key or value name to its descriptive
         ## their component of the label. features nested in a group should
-        ## only label the unqiue information for that variable since its
-        ## parent group labels should be prepended.
-        "feat":{
-            "ftemp":"Fuel Temperature",
+        ## only label the unqiue information for that key or value since its
+        ## parent labels should be prepended.
+            #"ftemp":"Fuel Temperature",
             "dfm":"Dead Fuel Moisture",
             "dfm-1":"1-Hour",
             "dfm-10":"10-Hour",
@@ -203,94 +113,15 @@ frontend = {
             **{f"bi-m{i}":"Model {i}" for i in range(num_fuel_models)},
             "ic":"Ignition Component",
             **{f"ic-m{i}":"Model {i}" for i in range(num_fuel_models)},
-            "mc-herb":"Herb Moisture Content",
-            "mc-wood":"Wood Moisture Content",
-            "gsi":"",
-            "kbdi":"kbdi",
-            },
-        "metric_spatial":{
-            "min":"Minimum",
-            "max":"Maximum",
-            "mean":"Average",
-            "stddev":"Std Dev",
-            "p10":"10th Pctl",
-            "p25":"25th Pctl",
-            "p50":"Median",
-            "p75":"75th Pctl",
-            "p90":"90th Pctl",
-            "max-min":"Max-Min",
-            "p95-05":"95-5 Pctl",
-            "p90-10":"90-10 Pctl",
-            "p75-25":"75-25 Pctl"
-            },
+            "herb":"Herb Moisture Content",
+            "wood":"Wood Moisture Content",
+            "gsi":"Growing Season Index",
+            "kbdi":"Keetch-Byram Drought Index",
         },
+    "short_labels":{},
     }
 
-backend = {
-    "num_fuel_models":num_fuel_models,
-    "crs_out":"EPSG:3857",
-    "mask_oversample_factor":16,
-    "mask_coverage_cutoff":.3,
-    ## netCDF features to extract
-    "extract_feats":[
-        "mc1", "mc10", "mc100", "mc1000",
-        "fuel_temp_c", "sc", "erc", "bi", "ic",
-        "mc_herb", "mc_wood", "gsi", "kbdi",
-        "time", "time_daily",
-        ],
-
-    ## map netCDF array variable keys to zarr store keys.
-    ## If a netCDF array splits into multiple variables, provide a list of
-    ## 3-tuples: (group_key:str, split_axis:int, labels:list)
-    ## ordered hierarchically such that the last-split axis labels the arrays.
-    "zarr_array_mapping":{
-        "mc1":"1h",
-        "mc10":"10h",
-        "mc100":"100h",
-        "mc1000":"1000h",
-        "fuel_temp_c":"ftemp",
-        "mc_herb":"herb",
-        "mc_wood":"wood",
-        "time":"hourly",
-        "time_daily":"daily",
-        "sc":(
-            "sc",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])]
-            ),
-        "erc":(
-            "erc",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])]
-            ),
-        "bi":(
-            "bi",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])],
-            ),
-        "ic":(
-            "ic",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])],
-            ),
-        },
-
-    ## map source netCDF variable names to the key directory where they will
-    "zarr_array_subpaths":{
-        "mc1":["variable", "dfm", "timelag"],
-        "mc10":["variable", "dfm", "timelag"],
-        "mc100":["variable", "dfm", "timelag"],
-        "mc1000":["variable", "dfm", "timelag"],
-        "fuel_temp_c":["variable"],
-        "mc_herb":["variable", "mc", "mtype"],
-        "mc_wood":["variable", "mc", "mtype"],
-        "sc":["variable"],
-        "erc":["variable"],
-        "bi":["variable"],
-        "ic":["variable"],
-        "gsi":["variable"],
-        "kbdi":["variable"],
-        "time":["time"],
-        "time_daily":["time"],
-        },
-    }
-
+## color map options and resolution
 cmap = {
     "options":[
         "viridis",
@@ -302,15 +133,224 @@ cmap = {
         "afmhot",
         ],
     "resolution":256,
+    "defaults":{
+        "bounds":[
+            #[[{"variable":"ftemp"}], [-30, 60]],
+            [[{"variable":"gsi"}], [0,1]],
+            [[{"variable":"kbdi"}], [0,400]],
+            [[{"variable":vk} for vk in ["ic", "bi", "erc"]], [0,100]],
+            [[{"variable":vk} for vk in ["sc", "dfm"]], [0,50]],
+            [[{"variable":"mc", "mtype":"herb"}], [30,250]],
+            [[{"variable":"mc", "mtype":"wood"}], [60,200]],
+            ],
+        "name":[[{}], "cmr.pride"],
+        },
     }
 
-custom_cmaps = {}
+custom_cmaps = {
+    "classic-9":{
+        "type":"listed",
+        "colors":[
+            "#cc0000", "#ff6600", "#ffa000", "#ebeb50", "#8ce48c",
+            "#00ff00", "#00c800", "#00af00", "#009600",
+            ],
+        },
+    "classic-5":{
+        "type":"listed",
+        "colors":[
+            "#cc0000", "#ffa000", "#8ce48c", "#00c800", "#009600",
+            ],
+        },
+    "beach-9":{
+        "type":"listed",
+        "colors":[
+            "#8c510a", "#bf812d", "#dfc27d", "#f6e8c3", "#f5f5f5",
+            "#c7eae5", "#80cdc1", "#35978f", "#01665e",
+            ],
+        },
+    "heat-5":{
+        "type":"listed",
+        "colors":[
+            "#d7191c", "#fdae61", "#ffffbf", "#abd9e9", "#2c7bb6",
+            ],
+        },
+    }
 
+## settings for how data is extracted and stored, not explicitly passed to user
+backend = {
+    "num_fuel_models":num_fuel_models,
+    "crs_out":"EPSG:3857",
+
+    ## rules for determining fractional inclusion of pixels in polygons
+    "mask_oversample_factor":16,
+    "mask_coverage_cutoff":.3,
+
+    ## netCDF features to extract
+    "extract_feats":[
+        "DFM1hr", "DFM10hr", "DFM100hr", "DFM1000hr",
+        "SC", "ERC", "BI", "IC",
+        "LFM_Herb", "LFM_Wood", "GSI", "KBDI",
+        "time", "time_daily",
+        ],
+
+    ## map netCDF array variable keys to zarr store keys.
+    ## If a netCDF array splits into multiple variables, provide a list of
+    ## 3-tuples: (group_key:str, split_axis:int, labels:list)
+    ## ordered hierarchically such that the last-split axis labels the arrays.
+    "zarr_array_mapping":{
+        "DFM1hr":"1h",
+        "DFM10hr":"10h",
+        "DFM100hr":"100h",
+        "DFM1000hr":"1000h",
+        #"fuel_temp_c":"ftemp",
+        "LFM_Herb":"herb",
+        "LFM_Wood":"wood",
+        "time":"hourly",
+        "time_daily":"daily",
+        "SC":(
+            "sc",
+            [("model", 1, [str(i) for i in range(num_fuel_models)])]
+            ),
+        "ERC":(
+            "erc",
+            [("model", 1, [str(i) for i in range(num_fuel_models)])]
+            ),
+        "BI":(
+            "bi",
+            [("model", 1, [str(i) for i in range(num_fuel_models)])],
+            ),
+        "IC":(
+            "ic",
+            [("model", 1, [str(i) for i in range(num_fuel_models)])],
+            ),
+        "GSI":"gsi",
+        "KBDI":"kbdi",
+        },
+
+    ## map source netCDF variable names to the key under which they're stored.
+    ## This ultimately determines the structure of the zarr store.
+    "zarr_array_subpaths":{
+        "DFM1hr":"variable/dfm/timelag",
+        "DFM10hr":"variable/dfm/timelag",
+        "DFM100hr":"variable/dfm/timelag",
+        "DFM1000hr":"variable/dfm/timelag",
+        #"fuel_temp_c":"variable",
+        "LFM_Herb":"variable/mc/mtype",
+        "LFM_Wood":"variable/mc/mtype",
+        "SC":"variable",
+        "ERC":"variable",
+        "BI":"variable",
+        "IC":"variable",
+        "GSI":"variable",
+        "KBDI":"variable",
+        "time":"time",
+        "time_daily":"time",
+        },
+
+    ## provide the (y, x) resampling axis numbers for each spatial array
+    ## *after* they have perhaps been split along some of their axes
+    "resample_axes":[
+        [
+            [{"variable":k} for k in [
+                "dfm", "sc", "erc", "bi", "ic" "mc", "gsi", "kbdi" ]],
+            [(1,2), (1,2)],
+            ],
+        ],
+
+    ## using a relational mapping to identify arrays, define keyword arguments
+    ## to zarr's create_array method to use when each array is stored.
+    "zarr_kwargs":[
+        ## valid times
+        [
+            [{"time":"hourly"}],
+            {
+                "attributes":{"dims":["hour"]},
+                "dimension_names":["hour"],
+                "dtype":"u4",
+                },
+            ],
+        [
+            [{"time":"daily"}],
+            {
+                "attributes":{"dims":["day"]},
+                "dimension_names":["day"],
+                "dtype":"u4",
+                },
+            ],
+        ## hourly variables
+        [
+            [{"variable":k} for k in [
+                "dfm", "sc", "erc", "bi", "ic"
+                ]],
+            {
+                "attributes":{
+                    "dims":["hour", "y", "x"],
+                    },
+                "dimension_names":["hour", "y", "x"],
+                "chunks":(6,180,220), ## ~475 KB per chunk
+                "shards":(24,1080,2200), ## (8, 7, 10) chunk grid; ~226 MB
+                "fill_value":norm_mask,
+                "dtype":"u2",
+                "compressors":[
+                    {
+                        "name":"blosc",
+                        "configuration":{
+                            "cname":"zstd",
+                            "clevel":4,
+                            "shuffle":"bitshuffle",
+                            "typesize":2,
+                            "blocksize":0, ## determined at runtime
+                            },
+                        },
+                    ],
+                },
+            ],
+
+        ## daily variables
+        [
+            [{"variable":fk} for fk in [
+                "mc", "gsi", "kbdi"
+                ]],
+            {
+                "attributes":{
+                    "dims":["day", "y", "x"],
+                    },
+                "dimension_names":["day", "y", "x"],
+                "chunks":(2, 180, 220),
+                "shards":(2, 1080, 2200),
+                "fill_value":norm_mask,
+                "dtype":"u2",
+                "compressors":[
+                    {
+                        "name":"blosc",
+                        "configuration":{
+                            "cname":"zstd",
+                            "clevel":4,
+                            "shuffle":"bitshuffle",
+                            "typesize":2,
+                            "blocksize":0, ## determined at runtime
+                            },
+                        },
+                    ],
+                },
+            ],
+        ]
+    }
+
+
+## validate backend array configuration
+
+## make sure array storage locations are under key directories, since the array
+## names should be the ultimate value name.
 src_keys = []
 for k,v in backend["zarr_array_subpaths"].items():
-    assert len(v)%2 == 1, "subpath must map to a menu key directory"
+    sp = [str(v) for v in v.replace(" ", "").split("/") if v]
+    assert len(sp)%2 == 1, "subpath must map to a menu key directory"
     src_keys.append(k)
+## make sure all source array value names are unique
 assert len(src_keys) == len(list(set(src_keys))), "source keys must be unique"
+## validate the stored array name configuration structure, including rules for
+## arrays that are split along an axis into multiple stored arrays
 src_keys = []
 for k,v in backend["zarr_array_mapping"].items():
     src_keys.append(k)
