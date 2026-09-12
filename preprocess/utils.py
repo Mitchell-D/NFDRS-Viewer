@@ -421,6 +421,9 @@ def polygon_fraction_subgrids(geo_ref_src, m_valid, multipolygon,
 
     return fractions, slices
 
+class AmbiguousMatchError(Exception):
+    pass
+
 class RelationalConfig:
     def __init__(self):
         self.store = []
@@ -444,6 +447,9 @@ class RelationalConfig:
         best_value = None
         is_tie = False
 
+        if query_dict == {} and len(self.store) == 1:
+            return self.store[0][1]
+
         for key_dict, value in self.store:
             # Count exact key-value pair matches
             score = sum(
@@ -464,7 +470,7 @@ class RelationalConfig:
                 )
 
         if is_tie:
-            raise ValueError(
+            raise AmbiguousMatchError(
                 "Ambiguous match: Multiple configurations tied with " \
                     + f"{max_score} shared property/properties:", query_dict
                 )

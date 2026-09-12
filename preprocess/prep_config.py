@@ -12,7 +12,7 @@ from pathlib import Path
 from pprint import pprint
 
 import config
-from utils import RelationalConfig
+from utils import RelationalConfig,AmbiguousMatchError
 
 def parse_zarr_menu_paths(zarr_store_path, menu_roots):
     """
@@ -92,7 +92,7 @@ if __name__=="__main__":
     zgrp = zarr.open(out_zarr_path, mode="a")
     vec_dir = Path("data/vector")
 
-    load_meta = False
+    load_meta = True
     load_cmaps = False
     load_menu = True
     check_bounds = False
@@ -113,7 +113,7 @@ if __name__=="__main__":
         '''
         zgrp.attrs.update({
             "norm":config.norm,
-            "labels"config.labels,
+            "labels":config.labels,
             #"regions":rconf,
             #"plots":config.plot_config,
             })
@@ -145,6 +145,7 @@ if __name__=="__main__":
         arrs = parse_zarr_menu_paths(out_zarr_path, ["/hrrr/itime"])
         args = config.menu_args
         trigs = config.menu_triggers
+        morder = config.backend["menu_order"]
         resolved = {}
         unresolved = list(args.keys())
         ## iterate until all menus are resolved
@@ -170,6 +171,10 @@ if __name__=="__main__":
                         cur_val = resolved[k].get(cur_key)
                     except KeyError as e:
                         cur_val = []
+                    ## on ambiguous match, probably the menu has multiple
+                    ## entries that partially match one k/v pair
+                    except AmbiguousMatchError as e:
+                        cur_val = []
                     if md[k] in cur_val:
                         continue
                     cur_val.append(md[k])
@@ -182,12 +187,32 @@ if __name__=="__main__":
                     {rk:rc.store for rk,rc in resolved.items()}
                     )
 
+        ## sort the menu value lists according to the configured rules,
+        ## falling back to alphabetical if a menu entry isn't configured
+        for k in args.keys():
+            cstor = resolved[k].store
+            new_cstor = []
+            cfg_order = morder.get(k, [])
+            for ck,cv in cstor:
+                if isinstance(cfg_order, (list, tuple)):
+                    ordered = list(sorted(
+                        [v for v in cv if v in cfg_order],
+                        key=lambda v: morder[k].index(v)
+                        ))
+                    alphabetic = list(sorted(
+                        [v for v in cv if not v in cfg_order]
+                        ))
+                    new_cstor.append((ck, ordered + alphabetic))
+                else:
+                    new_cstor.append((ck, cfg_order(cv)))
+                print(new_cstor[-1])
+            resolved[k].store = new_cstor
+
 
         array_paths = RelationalConfig()
         for ar in arrs:
             md = dict(zip(ar["keys"], ar["vals"]))
             array_paths.set(md, ar["path"])
-        zgrp.attrs.update({)
         zgrp.attrs.update({
             "menu":{
                 "options":{k:m.store for k,m in resolved.items()},

@@ -92,7 +92,7 @@ menu_args = {
     }
 
 ## frontend configuration consists of all l
-num_fuel_models = 5
+fuel_models = ["grass", "shrub", "brush", "timber", "slash"]
 labels = {
     "long_labels":{
         ## single-level dict mapping any key or value name to its descriptive
@@ -106,15 +106,16 @@ labels = {
             "dfm-100":"100-Hour",
             "dfm-1000":"1000-Hour",
             "sc":"Spread Component",
-            **{f"sc-m{i}":"Model {i}" for i in range(num_fuel_models)},
             "erc":"Energy Release Component",
-            **{f"erc-m{i}":"Model {i}" for i in range(num_fuel_models)},
             "bi":"Burning Index",
-            **{f"bi-m{i}":"Model {i}" for i in range(num_fuel_models)},
             "ic":"Ignition Component",
-            **{f"ic-m{i}":"Model {i}" for i in range(num_fuel_models)},
-            "herb":"Herb Moisture Content",
-            "wood":"Wood Moisture Content",
+            "grass":"Grass Model",
+            "shrub":"Shrub Model",
+            "brush":"Brush Model",
+            "timber":"Timber Model",
+            "slash":"Slash Model",
+            "herb":"Herbaceous Moisture Content",
+            "wood":"Woody Moisture Content",
             "gsi":"Growing Season Index",
             "kbdi":"Keetch-Byram Drought Index",
         },
@@ -178,7 +179,6 @@ custom_cmaps = {
 
 ## settings for how data is extracted and stored, not explicitly passed to user
 backend = {
-    "num_fuel_models":num_fuel_models,
     "crs_out":"EPSG:3857",
 
     ## rules for determining fractional inclusion of pixels in polygons
@@ -207,22 +207,10 @@ backend = {
         "LFM_Wood":"wood",
         "time":"hourly",
         "time_daily":"daily",
-        "SC":(
-            "sc",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])]
-            ),
-        "ERC":(
-            "erc",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])]
-            ),
-        "BI":(
-            "bi",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])],
-            ),
-        "IC":(
-            "ic",
-            [("model", 1, [str(i) for i in range(num_fuel_models)])],
-            ),
+        "SC":("sc", [("model", 1, fuel_models)]),
+        "ERC":("erc", [("model", 1, fuel_models)]),
+        "BI":("bi", [("model", 1, fuel_models)]),
+        "IC":("ic", [("model", 1, fuel_models)]),
         "GSI":"gsi",
         "KBDI":"kbdi",
         },
@@ -334,7 +322,16 @@ backend = {
                     ],
                 },
             ],
-        ]
+        ],
+        ## specify the sorted order of some or all possible menu values by
+        ## providing a list or sorting function applied to the list of value
+        ## strings. Unspecified menus or menu values are sorted alphabetically,
+        ## and unspecified values are appended after specified values.
+        "menu_order":{
+            "timelag":lambda ts:list(sorted(ts))[::-1],
+            "model":["grass", "shrub", "brush", "timber", "slash"],
+            "variable":["kbdi", "gsi", "dfm", "ic", "sc", "mc", "erc", "bi"],
+            },
     }
 
 

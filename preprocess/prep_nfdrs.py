@@ -92,9 +92,11 @@ def parse_netcdf_to_zarr(
         x = ncds[fk_src][...].data
         subp = (parent_key, parent_name, *sp[fk_src])
         aname = array_names.get(fk_src,fk_src)
+        ## extract a single array and store under its subpath
         if isinstance(aname, str):
             subsubp = (*subp, aname)
             data[subsubp] = x
+        ## extract multiple arrays by splitting along axes
         else:
             assert len(aname) == 2, \
                 f"must be (group_key:str, split_axes:list): {aname}"
@@ -196,10 +198,6 @@ def parse_netcdf_to_zarr(
                 subp[-1],
                 shape=out.shape,
                 **zprops,
-                #chunks=zprops.get("chunks", "auto"),
-                #shards=zprops.get("shards", "auto"),
-                #compressors=zprops.get("compressors", []),
-                #dtype=zprops.get("dtype", out.dtype)
                 )
             zgrp_sub[subp[-1]][...] = out
         except Exception as e:
