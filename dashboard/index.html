@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <title>NFDRS Forecast Dashboard</title>
+      <!--<link rel="icon" href="resources/images/favicon.ico">-->
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+
+      <link rel="icon" type="image/png" href="/images/favicon-96x96.png" sizes="96x96" />
+      <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+      <link rel="shortcut icon" href="/images/favicon.ico" />
+
+      <link rel="stylesheet" href="pkgs/bootstrap-5.2.3-dist/css/bootstrap.min.css"></link>
+      <script src="pkgs/d3.min.js"></script>
+      <script type="text/javascript" src="pkgs/maplibre-gl.js"></script>
+      <link rel="stylesheet" href="pkgs/maplibre-gl.css"></link>
+      <link rel="stylesheet" href="styles.css"></link>
+      <link rel="stylesheet" href="dark_mode.css" id="color_mode_css"></link>
+      <!--<script type="text/json" src="pkgs/maplibre-gl.js.map"></script>-->
+  </head>
+  <body class="d-flex flex-column min-vh-100" style="overflow:hidden;">
+    <header class="navbar sticky-top flex-md-nowrap p-0 shadow">
+      <div class="col-2">
+        <div class="d-lg-none">
+          <button class="btn btn-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#main_col_left">
+            ☰ Menu
+          </button>
+        </div>
+      </div>
+      <div class="col-8 text-center">
+        <a class="navbar-brand text-wrap me-0 px-3" href="#">NFDRS Forecast Dashboard</a>
+      </div>
+      <div class="col-2 text-center" style="overflow:hidden;">
+          <h4 style="color:#ed8080;">EXPERIMENTAL</h4>
+      </div>
+    </header>
+
+    <div class="container-fluid flex-grow-1 d-flex flex-column">
+      <div class="row flex-grow-1">
+
+        <!-- left column -->
+        <aside class="offcanvas-lg offcanvas-start col-lg-3 menu-side-bar side-column" id="main_col_left" data-bs-backdrop="true" data-bs-scroll="false">
+          <div class="offcanvas-header d-lg-none">
+            <h5 class="offcanvas-title">Data Menu</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#main_col_left"></button>
+          </div>
+
+          <div class="offcanvas-body flex-column">
+            <!-- region selection -->
+            <div class="row" id="menu_region_row">
+              <div class="col menu-button-column">
+                <div class="row justify-content-center">
+                  <p class="menu-section-title">Region</p>
+                </div>
+                <div class="row">
+                  <div id="region_map_canvas_container"></div>
+                </div>
+                <div class="row dropdown menu-button-container">
+                  <button class="btn btn-primary dropdown-toggle dropdown-button menu-button" type="button" id="dd_button_region_name" data-bs-toggle="dropdown" aria-expanded="false">
+                  </button>
+                  <ul id="dd_region_name" class="dropdown-menu" aria-labelledby="dd_button_region_name"></ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- data feat selection -->
+            <div class="row" id="menu_feat_row">
+              <div class="col menu-button-column">
+                <hr class="menu-rule"/>
+                <div class="row justify-content-center">
+                  <p class="menu-section-title">Variable</p>
+                </div>
+                <div class="row">
+                  <div class="col" id="menu_container_feat"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ensemble metric selection -->
+            <div class="row" id="menu_metric_row">
+              <div class="col menu-button-column">
+                <hr class="menu-rule"/>
+                <div class="row justify-content-center">
+                  <p class="menu-section-title">Ensemble Statistic</p>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <div class="row">
+                      <div class="col text-center">
+                        <p style="margin-bottom:0rem;">Value</p>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col " id="menu_container_metric_value"></div>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="row">
+                      <div class="col text-center">
+                        <p style="margin-bottom:0rem;">Spread</p>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col " id="menu_container_metric_spread"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- data bounds selection -->
+            <div class="row" id="menu_cmap_row">
+              <div class="col-md-12 menu-button-column">
+                <hr class="menu-rule"/>
+                <div class="row justify-content-center">
+                  <p class="menu-section-title">Data Bounds</p>
+                </div>
+                <div class="row" id="cmap_slider_row">
+
+                  <!-- slider form -->
+                  <div class="slider-container">
+
+                    <!-- slider bar -->
+                    <div class="row" style="display:none;">
+                      <div class="col-md-6 text-center slider-label-container">
+                          Min: <span class="slider-label slider-label-min"></span>
+                      </div>
+                      <div class="col-md-6 text-center slider-label-container">
+                          Max: <span class="slider-label slider-label-max"></span>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="slider-track">
+                        <div class="slider-range"></div>
+                        <div class="slider-handle slider-handle-min"></div>
+                        <div class="slider-handle slider-handle-max"></div>
+                      </div>
+                    </div>
+
+                    <!-- slider text input -->
+                    <div class="row">
+                      <div class="col-6 text-center bounds-input-container">
+                        <div class="row justify-content-center">
+                          <input id="cslider_input_min" class="text-center slider-input-min"></input>
+                        </div>
+                        <div class="row justify-content-center">
+                          <label for="cslider_input_min">Min</label>
+                        </div>
+                      </div>
+                      <div class="col-6 text-center bounds-input-container">
+                        <div class="row justify-content-center">
+                          <input id="cslider_input_max" class="text-center slider-input-max"></input>
+                        </div>
+                        <div class="row justify-content-center">
+                          <label for="cslider_input_max">Max</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- center column -->
+        <main class="col-12 col-lg-9">
+          <div class="row">
+            <div class="col-md-7" id="main_col_center">
+              <div class="row">
+                <div class="col-md-12">
+
+                  <!-- itime selection -->
+                  <div class="row">
+                    <p class="menu-section-title">GEFS Forecast Run</p>
+                  </div>
+                  <div class="row">
+                      <div id="menu_container_itime"></div>
+                  </div>
+
+                  <!-- main map -->
+                  <div class="row">
+                    <div class="flex-shrink-0" id="cbar_container">
+                    </div>
+                    <div class="flex-grow-1" id="map_container">
+                      <div id="main_map_container">
+                        <p id="main_header_text">---</p>
+                        <p id="main_date_text">---</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- buffer slider -->
+                  <div class="row justify-content-center">
+                    <div id="main_container_buffer_slider" class="buffer-slider-container"></div>
+                  </div>
+
+                  <!-- cosmetic vector selection -->
+                  <div class="d-flex justify-content-center" id="chiclets_container" >
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- right column -->
+            <div class="col-md-5 side-column" id="main_col_right">
+              <div class="row" id="menu_cmap_row">
+                <div class="col-md-12 menu-button-column">
+
+                  <!-- statistics figure -->
+                  <div class="row" id="fig_stats_labels">
+                    <div id="fig_stats_label_container">
+                      <p class="fig-label" id="fig_stats_label_variable"></p>
+                      <p class="fig-label" id="fig_stats_label_location"></p>
+                    </div>
+                  </div>
+                  <div class="row" id="fig_stats_container"></div>
+
+                  <!-- pgroup selection -->
+                  <hr class="menu-rule" style="margin-top:.8em;"/>
+                  <div class="row justify-content-center">
+                    <p class="menu-section-title">Plot Scope</p>
+                  </div>
+                  <div class="row">
+                    <div class="col" id="menu_container_pgroup"></div>
+                  </div>
+
+                  <!-- color map selection -->
+                  <hr class="menu-rule" style="margin-top:.8em;"/>
+                  <div class="row justify-content-center">
+                    <p class="menu-section-title">Color Map</p>
+                  <div class="row dropdown">
+                  </div>
+                    <button class="btn btn-primary dropdown-toggle dropdown-button menu-button" type="button" id="dd_button_cmap" data-bs-toggle="dropdown" aria-expanded="false">
+                    </button>
+                    <ul id="dd_cmap_name" class="dropdown-menu" aria-labelledby="dd_button_cmap"></ul>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <footer class="mt-auto py-3">
+    </footer>
+
+    <template id="vertical_cbar_template">
+      <div class="d-flex cbar-container">
+            <div class="flex-shrink-0 cbar-axis-container-inner">
+              <svg class="cbar-axis"></svg>
+            </div>
+            <div class="flex-grow-1 cbar-canvas-container-inner">
+              <canvas class="cbar-canvas"></canvas>
+            </div>
+      </div>
+    </template>
+
+    <template id="menu_flex_button_temp">
+      <div class="menu-button-container menu-flex-button-container">
+        <button type="button" class="btn btn-secondary menu-flex-button"></button>
+      </div>
+    </template>
+
+    <template id="menu_button_temp">
+      <div class="row menu-button-container">
+        <button type="button" class="btn btn-secondary menu-button"></button>
+      </div>
+    </template>
+
+    <!-- general drop-down menu template -->
+
+    <template id="dropdown_temp">
+      <div class="menu-button-container">
+        <li><button class="dropdown-item btn-secondary" href="#"></button></li>
+      </div>
+    </template>
+
+    <template id="split_dropdown_temp">
+      <li>
+        <a class="dropdown-item" href="#">
+            <div class="row">
+                <div class="col-md-6 split-dd-text"></div>
+                <div class="col-md-6 split-dd-image"></div>
+            </div>
+        </a>
+      </li>
+    </template>
+
+    <!-- frame ticker template -->
+
+    <template id="toggle_button_template">
+        <button type="button" class="btn btn-secondary toggle-button"/>
+    </template>
+
+    <template id="ticker_template">
+        <div id="" class="buffer-ticker buffer-ticker-disabled"></div>
+    </template>
+
+    <!-- map click tooltip template -->
+
+    <template id="tooltip_template">
+      <div id="tooltip_container_inner" class="tooltip-text">
+        <div id="tooltip_button_close">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <p id="tooltip_location" class="tooltip-text"></p>
+        <p id="tooltip_value" class="tooltip-text"></p>
+        <button id="tooltip_button_timeseries" class="btn tooltip-text">Generate Time Series</button>
+      </div>
+    </template>
+
+    <template id="buffer_slider_template">
+      <div class="buffer-slider-track buffer-slider-track-inactive">
+        <div class="buffer-slider-fill">
+        </div>
+        <div class="buffer-slider-thumb">
+        </div>
+      </div>
+    </template>
+
+    <template id="time_series_chiclet_template">
+      <div class="time-series-chiclet-container d-inline-block">
+        <div class="time-series-chiclet-dow-container">
+          <p class="time-series-chiclet-dow"></p>
+        </div>
+        <div class="time-series-chiclet-date-container">
+          <p class="time-series-chiclet-date"></p>
+        </div>
+        <div class="time-series-chiclet-data-container">
+          <p class="time-series-chiclet-data"></p>
+        </div>
+      </div>
+    </template>
+
+    <script type="module" src="js/main.js" async></script>
+    <script src="pkgs/popper.min.js"></script>
+    <script src="pkgs/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
+    <!--
+    <script src="pkgs/highcharts/highcharts.js"></script>
+    <script src="pkgs/highcharts/highcharts-more.js"></script>
+    <script src="pkgs/highcharts/modules/exporting.js"></script>
+    <script src="pkgs/highcharts/modules/export-data.js"></script>
+    <script src="pkgs/highcharts/themes/adaptive.js"></script>
+    -->
+  </body>
+</html>

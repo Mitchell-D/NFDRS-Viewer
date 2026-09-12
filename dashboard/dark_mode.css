@@ -1,0 +1,144 @@
+:root {
+    /*--text-color:#d2d2c8;*/
+    --text-color:#e98f7b;
+    /*--background-color:#101b26;*/
+    --background-color:#28282b;
+    --border-color:#0aa356;
+}
+html {
+    background-color:var(--background-color);
+}
+body {
+    background-color:var(--background-color);
+}
+header {
+    /*background-color:#241b18;*/
+    background-color:#2e3337;
+}
+footer {
+    /*background-color:#241b18;*/
+    background-color:#2e3337;
+}
+.navbar-brand {
+    color:var(--text-color);
+}
+.menu-section-title {
+    color:var(--text-color);
+}
+.menu-rule {
+    height:4px;
+    background-image: linear-gradient(to right, transparent, #fff, transparent);
+}
+
+.btn-primary {
+    /*background-color:#a34d14;*/
+    background-color:#2e3b34;
+    border-color:var(--border-color);
+}
+.btn-secondary:hover {
+    color:white;
+    border-color:#09bd63;
+    background-color:#37373b;
+}
+.btn-secondary {
+    background-color:var(--background-color);
+    border-color:#266947;
+    color:#9999a8;
+}
+.btn-primary:hover {
+    /*background-color:#eb7246;*/
+    background-color:#476153;
+    border-color:var(--border-color);
+}
+.btn-primary:focus {
+    /*background-color:#eb7246;*/
+    background-color:#63c284;
+    border-color:var(--border-color);
+    box-shadow: 0 0 0 .1rem #688777;
+}
+
+p {
+    color:var(--text-color);
+}
+
+label {
+    color:var(--text-color);
+}
+
+text {
+    stroke:#ffffff;
+}
+
+.slider-range {
+    background:var(--border-color);
+}
+
+svg text {
+    color:#898992;
+}
+
+svg line {
+    color:#898992;
+}
+
+svg .cur-line {
+    stroke:#c7d1cd;
+    opacity:.2;
+}
+
+svg path {
+    color:#898992;
+}
+
+.buffer-slider-fill {
+    background:#578f72;
+}
+
+.buffer-slider-thumb {
+    background:#37373b;
+    border:2px solid var(--border-color);
+}
+
+.buffer-slider-track {
+    background-color:#898992;
+}
+
+.slider-handle {
+    background:#37373b;
+    border:2px solid var(--border-color);
+}
+
+.dropdown-menu {
+    background-color:#898992;
+}
+
+.dropdown-item {
+    color:black;
+}
+
+.dropdown-item.btn-secondary {
+    color:black;
+    background-color:#898992;
+}
+.dropdown-item.btn-secondary:hover {
+    background-color:#81968b;
+}
+
+.dropdown-item.btn-primary {
+    background-color:#89b398;
+    color:black;
+}
+.dropdown-item.btn-primary:hover {
+    background-color:#63c284;
+    color:black;
+}
+
+#main_col_left {
+    background-color:var(--background-color);
+}
+.offcanvas-title {
+    color:var(--text-color);
+}
+.offcanvas-header button {
+    color:var(--text-color);
+}
