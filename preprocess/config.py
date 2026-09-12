@@ -85,10 +85,14 @@ menu_triggers = {
 ## menu keys that are used to determine value options for each menu
 menu_args = {
     "itime":[],
-    "variable":["itime"],
-    "timelag":["itime", "variable"],
-    "model":["itime", "variable"],
-    "mtype":["itime", "variable"],
+    "variable":[],
+    "timelag":["variable"],
+    "model":["variable"],
+    "mtype":["variable"],
+    #"variable":["itime"],
+    #"timelag":["itime", "variable"],
+    #"model":["itime", "variable"],
+    #"mtype":["itime", "variable"],
     }
 
 ## frontend configuration consists of all l

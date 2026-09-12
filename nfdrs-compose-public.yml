@@ -2,7 +2,7 @@ version: "3"
 
 services:
   nfdrs-api:
-    image: localhost/nfdrs-viewer_nfdrs-api:latest
+    image: localhost/nfdrs-viewer_nfdrs-api:arm64
     container_name: nfdrs-api
     ports:
       - "81"
@@ -39,8 +39,8 @@ services:
     image: nginx:1.28.0
     container_name: nfdrs-dashboard
     ports:
-      - "18086:80"
-    platform: linux/arm64/v8
+      #- "18086:80"
+      - "18085:80" ## temporarily use wwao binding
     ## mount data and html directories
     volumes:
       - ./dashboard:/usr/share/nginx/html:ro,z

@@ -22,11 +22,13 @@
   <body class="d-flex flex-column min-vh-100" style="overflow:hidden;">
     <header class="navbar sticky-top flex-md-nowrap p-0 shadow">
       <div class="col-2">
+        <!--
         <div class="d-lg-none">
           <button class="btn btn-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#main_col_left">
             ☰ Menu
           </button>
         </div>
+        -->
       </div>
       <div class="col-8 text-center">
         <a class="navbar-brand text-wrap me-0 px-3" href="#">NFDRS Forecast Dashboard</a>
@@ -37,9 +39,13 @@
     </header>
 
     <div class="container-fluid flex-grow-1 d-flex flex-column">
+      <div class="row">
+      </div>
+
       <div class="row flex-grow-1">
 
         <!-- left column -->
+        <!--
         <aside class="offcanvas-lg offcanvas-start col-lg-3 menu-side-bar side-column" id="main_col_left" data-bs-backdrop="true" data-bs-scroll="false">
           <div class="offcanvas-header d-lg-none">
             <h5 class="offcanvas-title">Data Menu</h5>
@@ -47,206 +53,167 @@
           </div>
 
           <div class="offcanvas-body flex-column">
-            <!-- region selection -->
-            <div class="row" id="menu_region_row">
+            <div class="row" id="menu_itime_row">
               <div class="col menu-button-column">
                 <div class="row justify-content-center">
-                  <p class="menu-section-title">Region</p>
+                  <p class="menu-section-title">Forecast Run</p>
                 </div>
                 <div class="row">
-                  <div id="region_map_canvas_container"></div>
-                </div>
-                <div class="row dropdown menu-button-container">
-                  <button class="btn btn-primary dropdown-toggle dropdown-button menu-button" type="button" id="dd_button_region_name" data-bs-toggle="dropdown" aria-expanded="false">
-                  </button>
-                  <ul id="dd_region_name" class="dropdown-menu" aria-labelledby="dd_button_region_name"></ul>
+                  <div class="col" id="menu_container_itime"></div>
                 </div>
               </div>
             </div>
 
-            <!-- data feat selection -->
-            <div class="row" id="menu_feat_row">
-              <div class="col menu-button-column">
-                <hr class="menu-rule"/>
-                <div class="row justify-content-center">
-                  <p class="menu-section-title">Variable</p>
-                </div>
-                <div class="row">
-                  <div class="col" id="menu_container_feat"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ensemble metric selection -->
-            <div class="row" id="menu_metric_row">
-              <div class="col menu-button-column">
-                <hr class="menu-rule"/>
-                <div class="row justify-content-center">
-                  <p class="menu-section-title">Ensemble Statistic</p>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    <div class="row">
-                      <div class="col text-center">
-                        <p style="margin-bottom:0rem;">Value</p>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col " id="menu_container_metric_value"></div>
-                    </div>
-                  </div>
-                  <div class="col">
-                    <div class="row">
-                      <div class="col text-center">
-                        <p style="margin-bottom:0rem;">Spread</p>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col " id="menu_container_metric_spread"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- data bounds selection -->
-            <div class="row" id="menu_cmap_row">
-              <div class="col-md-12 menu-button-column">
-                <hr class="menu-rule"/>
-                <div class="row justify-content-center">
-                  <p class="menu-section-title">Data Bounds</p>
-                </div>
-                <div class="row" id="cmap_slider_row">
-
-                  <!-- slider form -->
-                  <div class="slider-container">
-
-                    <!-- slider bar -->
-                    <div class="row" style="display:none;">
-                      <div class="col-md-6 text-center slider-label-container">
-                          Min: <span class="slider-label slider-label-min"></span>
-                      </div>
-                      <div class="col-md-6 text-center slider-label-container">
-                          Max: <span class="slider-label slider-label-max"></span>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="slider-track">
-                        <div class="slider-range"></div>
-                        <div class="slider-handle slider-handle-min"></div>
-                        <div class="slider-handle slider-handle-max"></div>
-                      </div>
-                    </div>
-
-                    <!-- slider text input -->
-                    <div class="row">
-                      <div class="col-6 text-center bounds-input-container">
-                        <div class="row justify-content-center">
-                          <input id="cslider_input_min" class="text-center slider-input-min"></input>
-                        </div>
-                        <div class="row justify-content-center">
-                          <label for="cslider_input_min">Min</label>
-                        </div>
-                      </div>
-                      <div class="col-6 text-center bounds-input-container">
-                        <div class="row justify-content-center">
-                          <input id="cslider_input_max" class="text-center slider-input-max"></input>
-                        </div>
-                        <div class="row justify-content-center">
-                          <label for="cslider_input_max">Max</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </aside>
+        -->
 
         <!-- center column -->
-        <main class="col-12 col-lg-9">
+        <main class="col-12 col-lg-12">
+
+          <!-- itime selection -->
           <div class="row">
-            <div class="col-md-7" id="main_col_center">
-              <div class="row">
-                <div class="col-md-12">
-
-                  <!-- itime selection -->
-                  <div class="row">
-                    <p class="menu-section-title">GEFS Forecast Run</p>
-                  </div>
-                  <div class="row">
-                      <div id="menu_container_itime"></div>
-                  </div>
-
-                  <!-- main map -->
-                  <div class="row">
-                    <div class="flex-shrink-0" id="cbar_container">
-                    </div>
-                    <div class="flex-grow-1" id="map_container">
-                      <div id="main_map_container">
-                        <p id="main_header_text">---</p>
-                        <p id="main_date_text">---</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- buffer slider -->
-                  <div class="row justify-content-center">
-                    <div id="main_container_buffer_slider" class="buffer-slider-container"></div>
-                  </div>
-
-                  <!-- cosmetic vector selection -->
-                  <div class="d-flex justify-content-center" id="chiclets_container" >
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-            <!-- right column -->
-            <div class="col-md-5 side-column" id="main_col_right">
-              <div class="row" id="menu_cmap_row">
-                <div class="col-md-12 menu-button-column">
-
-                  <!-- statistics figure -->
-                  <div class="row" id="fig_stats_labels">
-                    <div id="fig_stats_label_container">
-                      <p class="fig-label" id="fig_stats_label_variable"></p>
-                      <p class="fig-label" id="fig_stats_label_location"></p>
-                    </div>
-                  </div>
-                  <div class="row" id="fig_stats_container"></div>
-
-                  <!-- pgroup selection -->
-                  <hr class="menu-rule" style="margin-top:.8em;"/>
-                  <div class="row justify-content-center">
-                    <p class="menu-section-title">Plot Scope</p>
-                  </div>
-                  <div class="row">
-                    <div class="col" id="menu_container_pgroup"></div>
-                  </div>
-
-                  <!-- color map selection -->
-                  <hr class="menu-rule" style="margin-top:.8em;"/>
-                  <div class="row justify-content-center">
-                    <p class="menu-section-title">Color Map</p>
-                  <div class="row dropdown">
-                  </div>
-                    <button class="btn btn-primary dropdown-toggle dropdown-button menu-button" type="button" id="dd_button_cmap" data-bs-toggle="dropdown" aria-expanded="false">
-                    </button>
-                    <ul id="dd_cmap_name" class="dropdown-menu" aria-labelledby="dd_button_cmap"></ul>
-                  </div>
-
-                </div>
-              </div>
-            </div>
+            <p class="menu-itime-title">GEFS Forecast Run</p>
           </div>
+          <div class="row"><div id="menu_container_itime"></div></div>
+
+          <!-- data modules -->>
+          <div class="row">
+            <div class="col-12" id="data_module_container"></div>
+          </div>
+
+          <!-- add data module button -->
+          <div class="row justify-content-center">
+            <button id="btn_new_data_module" class="btn btn-primary w-25" type="button">
+              New Data Module
+            </button>
+          </div>
+
+          <!-- buffer slider -->
+          <div class="row justify-content-center">
+            <div class="buffer-slider-container"></div>
+          </div>
+
         </main>
       </div>
+
+
     </div>
     <footer class="mt-auto py-3">
     </footer>
+
+    <template id="data_module_template">
+      <div class="row">
+        <div class="col-md-7 main-col-center">
+          <div class="row">
+            <div class="col-md-12">
+
+              <!-- itime selection -->
+              <div class="row">
+                <p class="menu-section-title"></p>
+              </div>
+              <div class="row">
+                  <div class="menu-container-itime"></div>
+              </div>
+
+              <!-- main map -->
+              <div class="row">
+                <div class="flex-shrink-0 cbar-container">
+                </div>
+                <div class="flex-grow-1 map-container">
+                  <div class="main-map-container">
+                    <p class="main-header-text">---</p>
+                    <p class="main-date-text">---</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" class="menu-cmap-row">
+                <!-- data bounds selection -->
+                <div class="col-md-6 menu-button-column">
+                  <div class="row justify-content-center">
+                    <p class="menu-section-title">Data Bounds</p>
+                  </div>
+                  <div class="row" class="cmap-slider-row">
+
+                    <!-- slider form -->
+                    <div class="slider-container">
+                      <!-- slider bar -->
+                      <div class="row" style="display:none;">
+                        <div class="col-md-6 text-center slider-label-container">
+                            Min: <span class="slider-label slider-label-min"></span>
+                        </div>
+                        <div class="col-md-6 text-center slider-label-container">
+                            Max: <span class="slider-label slider-label-max"></span>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="slider-track">
+                          <div class="slider-range"></div>
+                          <div class="slider-handle slider-handle-min"></div>
+                          <div class="slider-handle slider-handle-max"></div>
+                        </div>
+                      </div>
+
+                      <!-- slider text input -->
+                      <div class="row">
+                        <div class="col-6 text-center bounds-input-container">
+                          <div class="row justify-content-center">
+                            <input id="cslider_input_min" class="text-center slider-input-min"></input>
+                          </div>
+                          <div class="row justify-content-center">
+                            <label for="cslider_input_min">Min</label>
+                          </div>
+                        </div>
+                        <div class="col-6 text-center bounds-input-container">
+                          <div class="row justify-content-center">
+                            <input id="cslider_input_max" class="text-center slider-input-max"></input>
+                          </div>
+                          <div class="row justify-content-center">
+                            <label for="cslider_input_max">Max</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- color map selection -->
+                <div class="col-md-6">
+                  <div class="row justify-content-center">
+                    <p class="menu-section-title">Color Map</p>
+                  </div>
+                  <div class="row dropdown">
+                    <button class="btn btn-primary dropdown-toggle dropdown-button menu-button dd-button-cmap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    </button>
+                    <ul class="dd-cmap-name dropdown-menu" aria-labelledby="dd_button_cmap"></ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- right column -->
+        <div class="col-md-5 side-column main-col-right">
+          <div class="row" class="menu-cmap-row">
+            <div class="col-md-12 menu-button-column">
+
+              <!-- statistics figure -->
+              <div class="row" class="fig-stats-labels">
+                <div class="fig-stats-label-container">
+                  <p class="fig-label fig-stats-label-variable"></p>
+                  <p class="fig-label fig-stats-label-location"></p>
+                </div>
+              </div>
+              <div class="row fig-stats-container"></div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <template id="vertical_cbar_template">
       <div class="d-flex cbar-container">

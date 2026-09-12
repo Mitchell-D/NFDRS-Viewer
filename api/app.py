@@ -47,8 +47,8 @@ meta_nfdrs = {
     "labels":zattrs["labels"],
     "cmaps":{
         **zattrs["cmaps"],
-        "cmaps":zgrp["cmaps"][...].tolist()
-        }
+        "arrs":zgrp["cmaps"][...].tolist()
+        },
     "menu":zattrs["menu"]
     }
 
@@ -56,7 +56,7 @@ meta_nfdrs = {
 """ ---( app initialization )--- """
 
 ## declare app and add middleware for logging requests
-app = FastAPI(title="NFDRS API", lifespan=lifespan)
+app = FastAPI(title="NFDRS API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -73,9 +73,9 @@ app.add_middleware(
 
 """ ---( app endpoints )--- """
 
-@app.get("/menu")
-def req_menu():
-    """ endpoint for menu information (labels, time range, etc) """
+@app.get("/meta")
+def req_meta():
+    """ endpoint for meta information (labels, time range, etc) """
     return meta_nfdrs
 
 '''

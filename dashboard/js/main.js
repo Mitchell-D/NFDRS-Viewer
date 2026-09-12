@@ -1,21 +1,27 @@
 import { Map } from "./Map.js";
-import { ColorBar } from "./ColorBar.js";
+//import { ColorBar } from "./ColorBar.js";
 import { Menu } from "./Menu.js";
-import { DualRangeSlider } from "./DualRangeSlider.js";
-import { EToRasterBuffer } from "./EToRasterBuffer.js";
+//import { DualRangeSlider } from "./DualRangeSlider.js";
+//import { EToRasterBuffer } from "./EToRasterBuffer.js";
 import { BufferSlider } from "./BufferSlider.js";
-import {
-    vector_anchors, vector_styles, map_anchors,
-    highlight_anchors, highlight_styles,
-} from "./map_styles.js";
+import { ConfigManager } from "./ConfigManager.js";
 
-import { RegionMapForm } from "./RegionMapForm.js";
-import { TimeSeriesChiclets} from "./TimeSeriesChiclets.js";
+//import {
+//    vector_anchors, vector_styles, map_anchors,
+//    highlight_anchors, highlight_styles,
+//} from "./map_styles.js";
 
-import { TimeSeries } from "./TimeSeries.js";
+//import { TimeSeries } from "./TimeSeries.js";
 
 const state = {
     dom:{
+        c_menu_itime:"menu_container_itime",
+        c_buffer_slider:"main_container_buffer_slider",
+        c_data_modules:"data_module_container",
+        b_new_data_module:"btn_new_data_module",
+        t_menu_button:"menu_button_temp"
+
+        /*
         text_main_feat:"main_header_text",
         text_main_date:"main_date_text",
         chiclets_container:"chiclets_container",
@@ -32,7 +38,6 @@ const state = {
         cmap_dropdown:"dd_cmap_name",
         cmap_dropdown_button:"dd_button_cmap",
         cbar_container:"cbar_container",
-        buffer_slider_container:"main_container_buffer_slider",
         vector_toggle_container:"main_container_vector_toggle",
         fig_stats_container:"fig_stats_container",
         fig_stats_label_variable:"fig_stats_label_variable",
@@ -46,9 +51,20 @@ const state = {
         tpl_menu_dropdown:"dropdown_temp",
         tpl_buffer_slider:"buffer_slider_template",
         tpl_toggle_button:"toggle_button_template",
+        */
         //pgroup_menu:"menu_container_pgroup",
         //date_picker:"buffer_date_range",
     },
+
+    norm:null,
+    labels:null,
+    cmaps:null,
+    menus:null,
+    configs:{},
+    urls:{
+        meta:"api/meta",
+    },
+    /*
     sel:{
         region:"southeast",
         feat:"eto",
@@ -61,22 +77,14 @@ const state = {
         cmax:null, // minimum value bound for color map
         cmap:null,
     },
+    */
     // promises for current array and mask loaded in WASM
+    /*
     cur:{
         array:null,
     },
-    urls:{
-        raster:"/eto/api/raster",
-        menu:"/eto/api/menu",
-        cmaps:"/eto/api/cmaps",
-        pgroup:"/eto/api/pgroup",
-        map_glyphs:"https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
-        polygon:"/eto/api/polygon",
-        pixel:"/eto/api/pixel",
-        plots:"/eto/api/plots",
-        region_map_raster:"/eto/api/regionmap/raster",
-        region_map_borders:"/eto/api/regionmap/borders",
-    },
+    */
+    /*
     labels:{
         regions:null,
         feats:null,
@@ -99,47 +107,41 @@ const state = {
         metrics:null,
         units:null,
     },
-    regions:null, // maps region numbers to dimensions and coord bounds
-    nvtimes:null, // number of valid times per forecast run
+    */
+    //regions:null, // maps region numbers to dimensions and coord bounds
+    //nvtimes:null, // number of valid times per forecast run
 
+    /*
     region_map_form: {
         width:null,
         height:null,
         raster:null,
         borders:null,
     },
-    norm:{
-        bounds:null,
-        resolution:null,
-        mask:null,
-    },
-    cmap:{
-        arrays:null,
-        default_bounds:null,
-        options:null,
-        resolution:null,
-    },
+    */
 
+    /*
     main_cbar:{
         orientation:"vertical",
         nticks:8,
         tick_size:5,
         tick_padding:2,
     },
+    */
 
-    cur_chiclet_data:{},
-    cur_stats_data:[],
+    //cur_chiclet_data:{},
+    //cur_stats_data:[],
 
     vector_toggle_state:null,
     vectors:null,
 
     // degree bounds around selected domain within which to allow panning
-    map_bounds_buffer:[6, 6],
+    //map_bounds_buffer:[6, 6],
 
     // keep track of whether the feature or metric is in the process of
     // changing so that the subsequent color map and slider updates don't
     // trigger a redundant array request.
-    feat_or_metric_changing:false,
+    //feat_or_metric_changing:false,
 
     // maximum number of arrays to allow in the buffer at once
     max_num_arrays:15,
@@ -159,6 +161,7 @@ const dom_ready = new Promise(resolve => {
   }
 });
 
+/*
 let MAP = null; // main map
 let MENU_REGION = null; // init time menu
 let MAP_REGION = null;
@@ -169,10 +172,11 @@ let MENU_METRIC = null; // metric button menu
 let MENU_CSLIDER = null; // color map slider forms
 let MENU_CMAP = null; // color map name forms
 let MAIN_CBAR = null;
-let RASTER_BUFFER = null;
-let BUFFER_SLIDER = null;
 let PLOT_STATS = null;
 let CHICLETS = null;
+*/
+let RASTER_BUFFER = null;
+let BUFFER_SLIDER = null;
 
 function fmt_date_string(dstr) {
     const s = `${dstr.slice(0,4)}-${dstr.slice(4,6)}-${dstr.slice(6,8)}`;
@@ -182,6 +186,7 @@ function fmt_date_string(dstr) {
     return s;
 }
 
+/*
 function update_main_labels() {
     const tmf = document.getElementById(state.dom.text_main_feat);
     const tmd = document.getElementById(state.dom.text_main_date);
@@ -193,60 +198,53 @@ function update_main_labels() {
         tmd.textContent = fmt_date_string(state.sel.vtime);
     }
 }
+*/
 
 // explicitly unpack metadata so there's no ambiguity
-const meta_loaded = fetch(state.urls.menu)
+const meta_loaded = fetch(state.urls.meta)
     .then(r => r.json())
     .then(r => {
-        state.labels.regions = r["labels"]["regions"];
-        state.labels.feats = r["labels"]["feats"];
-        state.labels.metrics_raster = r["labels"]["metrics_raster"];
-        state.labels.metrics_pgroup = r["labels"]["metrics_pgroup"];
-        state.labels.metrics_spread = r["labels"]["metrics_spread"];
-        state.labels.itimes = r["labels"]["itimes"];
-        state.labels.pgroups = r["labels"]["pgroups"];
-        state.labels.pgroups.push("pixel");
-        state.labels.vtimes = r["labels"]["vtimes"];
+        state.norm = r["norm"];
+        state.labels = r["labels"];
+        state.cmaps = r["cmaps"];
+        state.menus = r["menu"];
+        console.log(state.norm);
+        console.log(state.labels);
+        console.log(state.cmaps);
+        console.log(state.menus);
 
-        state.region_map_form.width = r["region_map_form"]["width"];
-        state.region_map_form.height = r["region_map_form"]["height"];
-        state.region_map_form.mask_val = r["region_map_form"]["mask_val"];
-
-        state.regions = r["regions"];
-
-        state.nvtimes = r["nvtimes"];
-
-        state.norm.bounds = r["norm_bounds"];
-        state.norm.resolution = r["norm_res"];
-        state.norm.mask = r["mask_val"];
-
-        state.long_labels.regions = r["long_labels"]["regions"];
-        state.long_labels.feats = r["long_labels"]["feats"];
-        state.long_labels.metrics = r["long_labels"]["metrics"];
-        state.long_labels.units = r["long_labels"]["units"];
-
-        state.short_labels.regions = r["short_labels"]["regions"];
-        state.short_labels.feats = r["short_labels"]["feats"];
-        state.short_labels.metrics = r["short_labels"]["metrics"];
-        state.short_labels.units = r["short_labels"]["units"];
-
-        //state.vector_toggle_state = r["vector_toggle_state"];
-
-        state.pgroups = {};
-        for (const v of state.labels.pgroups){
-            state.pgroups[v] = {};
-            for (const r of state.labels.regions) {
-                state.pgroups[v][r] = null;
-            }
+        // convert cmap arrays to Uint8ClampedArray objects
+        const cmarrs = {};
+        for (const i in state.cmaps["slices"]) {
+            const [ix0,ixf] = state.cmaps["slices"][i];
+            const ck = state.cmaps["options"][i];
+            cmarrs[ck] = new Uint8ClampedArray(
+                state.cmaps["arrs"].slice(ix0,ixf));
         }
-
-        // go ahead and set the default itime so the first raster request can
-        // issue after this promise resolves. Other fields are global defaults.
-        const cur_its = state.labels.itimes[state.sel.region][state.sel.feat];
-        state.sel.itime = cur_its[cur_its.length - 1];
-        update_main_labels();
+        state.cmaps["arrs"] = cmarrs;
     });
 
+const menus_ready = meta_loaded
+    .then(() => {
+        for (const mk in state.menus.options) {
+            state.configs[mk] = new ConfigManager(state.menus[mk]);
+        }
+        console.log(state.configs);
+        /*
+        MENU_ITIME = new Menu({
+            container_id:state.dom.c_menu_itime,
+            button_template_id:state.dom.t_menu_button,
+            labels:state.labels.regions,
+            defaults:state.sel.region,
+            initial_conditions:[],
+            long_labels:state.long_labels.regions,
+            class_active:"btn-primary",
+            class_inactive:"btn-secondary",
+        });
+        */
+    });
+
+/*
 const plots_loaded = fetch(state.urls.plots)
     .then(r => r.json())
     .then(r => {
@@ -260,7 +258,9 @@ const plots_loaded = fetch(state.urls.plots)
             time_template:"%Y%m%d",
         });
     });
+*/
 
+/*
 const cmaps_loaded = fetch(state.urls.cmaps)
     .then(r => r.json())
     .then(r => {
@@ -279,7 +279,9 @@ const cmaps_loaded = fetch(state.urls.cmaps)
                 r["cmaps"].slice(ix0,ixf));
         }
     });
+*/
 
+/*
 const vtimes_loaded = meta_loaded
     .then(async () => {
         BUFFER_SLIDER = new BufferSlider({
@@ -289,8 +291,10 @@ const vtimes_loaded = meta_loaded
         });
         BUFFER_SLIDER.update(state.labels.vtimes[state.sel.itime]);
     });
+*/
 
 // initialize the map
+/*
 const map_started = Promise.all([dom_ready, meta_loaded])
     .then(() => {
         const mcon = document.getElementById(state.dom.main_map_container)
@@ -313,7 +317,9 @@ const map_started = Promise.all([dom_ready, meta_loaded])
             raster_height:state.regions[state.sel.region]["height"],
         });
     });
+*/
 
+/*
 const menu_forms_initialized = Promise.all([dom_ready, meta_loaded])
     .then(r => {
         // initialize region menu
@@ -444,9 +450,9 @@ const menu_forms_initialized = Promise.all([dom_ready, meta_loaded])
             //console.log("new itime", new_itime);
         });
     });
+*/
 
-
-
+/*
 const region_map_forms_ready = Promise.all([
     fetch(state.urls.region_map_raster).then(r => r.arrayBuffer()),
     fetch(state.urls.region_map_borders).then(r => r.arrayBuffer()),
@@ -475,8 +481,9 @@ const region_map_forms_ready = Promise.all([
         MAP_REGION.set_id(state.labels.regions.indexOf(state.sel.region));
     });
 });
+*/
 
-
+/*
 const sliders_initialized = Promise.all([
     dom_ready, menu_forms_initialized, cmaps_loaded])
     .then(() => {
@@ -616,7 +623,9 @@ const sliders_initialized = Promise.all([
         });
 
     });
+*/
 
+/*
 const plot_bounds_set = Promise.all([sliders_initialized, plots_loaded])
     .then(() => {
         MENU_CSLIDER.subscribe((cmin, cmax) => {
@@ -624,7 +633,9 @@ const plot_bounds_set = Promise.all([sliders_initialized, plots_loaded])
         });
         PLOT_STATS.set_y_bounds(state.sel.cmin, state.sel.cmax);
     })
+*/
 
+/*
 const map_regions_bound = Promise.all([map_started, menu_forms_initialized])
     .then(() => {
         MENU_REGION.subscribe((new_region) => {
@@ -642,7 +653,9 @@ const map_regions_bound = Promise.all([map_started, menu_forms_initialized])
             MENU_ITIME.update([state.sel.region, state.sel.feat]);
         });
     });
+*/
 
+/*
 function add_region_pgroups(region) {
     const proms = [];
     for (const pg of state.labels.pgroups) {
@@ -667,8 +680,10 @@ function add_region_pgroups(region) {
     }
     return Promise.all(proms);
 }
+*/
 
 // resolves when all pgroups are loaded and active for this region
+/*
 const pgroups_active = Promise.all([map_regions_bound, sliders_initialized])
     .then(() => {
         MENU_REGION.subscribe(new_region => {
@@ -747,6 +762,7 @@ const pgroups_active = Promise.all([map_regions_bound, sliders_initialized])
     .then(() => {
         return add_region_pgroups(state.sel.region);
     });
+*/
 
 /*
 const vector_toggles_active = map_regions_bound
@@ -791,6 +807,7 @@ const vector_toggles_active = map_regions_bound
     });
 */
 
+/*
 function update_active_array() {
     // de-activate BUFFER_SLIDER as long as array requests are ongoing so that
     // its subscriptions are only notified when the required arrays are
@@ -835,7 +852,9 @@ function update_active_array() {
     });
 
 }
+*/
 
+/*
 const buffer_initialized = meta_loaded.then(async ()=> {
     const rdims = {};
     for (const r in state.regions) {
@@ -855,7 +874,9 @@ const buffer_initialized = meta_loaded.then(async ()=> {
     });
     await update_active_array()
 });
+*/
 
+/*
 const bind_array_requests = Promise.all([
     buffer_initialized, map_regions_bound, sliders_initialized,
 ]).then(() => {
@@ -866,7 +887,9 @@ const bind_array_requests = Promise.all([
     MENU_ITIME.subscribe(update_active_array);
     MENU_REGION.subscribe(update_active_array);
 });
+*/
 
+/*
 async function new_active_rgb() {
     await state.cur.array;
     const arr = await RASTER_BUFFER.get_rgb({
@@ -888,7 +911,9 @@ async function new_active_rgb() {
     );
     return rgb;
 }
+*/
 
+/*
 const render_ready = Promise.all([
     bind_array_requests, vtimes_loaded, map_regions_bound, plots_loaded,
 ])
@@ -918,3 +943,4 @@ const render_ready = Promise.all([
             }
         });
     });
+*/
