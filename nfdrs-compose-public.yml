@@ -1,58 +1,60 @@
 version: "3"
 
 services:
-  wwao-api:
-    image: localhost/wwao-viewer_wwao-api:latest
-    container_name: wwao-api
+  nfdrs-api:
+    image: localhost/nfdrs-viewer_nfdrs-api:latest
+    container_name: nfdrs-api
     ports:
       - "81"
     volumes:
       ## data api
       - ./api/app.py:/app/app.py:ro,Z
       ## database
-      - ./data/wwao-dashboard.zarr:/app/wwao-dashboard.zarr:Z
+      - ./data/store/nfdrs-forecast.zarr:/app/nfdrs-forecast.zarr:Z
     environment:
       - LOG_LEVEL=info
       - UVICORN_ACCESS_LOG=true
-      - REDIS_URL=redis://wwao-apicache:6379
+      - REDIS_URL=redis://nfdrs-apicache:6379
     networks:
-      - wwao-backend
+      - nfdrs-backend
 
-  wwao-apicache:
+  nfdrs-apicache:
     image: docker.io/redis:8-alpine
-    container_name: wwao-apicache
+    container_name: nfdrs-apicache
     networks:
-     - wwao-backend
+     - nfdrs-backend
 
-  wwao-basemap:
+  nfdrs-basemap:
     image: ghcr.io/maplibre/martin:latest
-    container_name: wwao-basemap
+    container_name: nfdrs-basemap
     volumes:
       - ./basemap:/data:ro
     command: ["--config", "/data/config.yaml"]
     expose:
       - "3000"
     networks:
-      - wwao-backend
+      - nfdrs-backend
 
-  wwao-dashboard:
+  nfdrs-dashboard:
     image: nginx:1.28.0
-    container_name: wwao-dashboard
+    container_name: nfdrs-dashboard
     ports:
-      - "18085:80"
+      - "18086:80"
+    platform: linux/arm64/v8
     ## mount data and html directories
     volumes:
-      - ./dashboard:/usr/share/nginx/html:Z
+      - ./dashboard:/usr/share/nginx/html:ro,z
       - ./dashboard/default.conf:/etc/nginx/conf.d/default.conf:ro,Z
+      - ./data/store/nfdrs-forecast.zarr:/usr/share/nginx/html/nfdrs-forecast.zarr/:ro,z
     tmpfs:
-      - /var/cache/nginx/wwao_data_cache:rw,noexec,nosuid,size=512m
+      - /var/cache/nginx/nfdrs_data_cache:rw,noexec,nosuid,size=512m
 
     depends_on:
-      - wwao-api
+      - nfdrs-api
     networks:
-      - wwao-backend
+      - nfdrs-backend
 
 networks:
-  wwao-backend:
+  nfdrs-backend:
     driver: bridge
     enable_ipv6: false

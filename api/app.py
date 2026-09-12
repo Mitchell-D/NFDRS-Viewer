@@ -24,6 +24,7 @@ zarr.config.set({"async.concurrency": 64})
 zgrp = zarr.open("nfdrs-forecast.zarr", mode="r")
 zattrs = dict(zgrp.attrs)
 
+'''
 ## restructure the plot config into ordered lists
 plot_info = {}
 for pgk,pgv in zattrs["plots"].items():
@@ -38,37 +39,19 @@ for pgk,pgv in zattrs["plots"].items():
             key=lambda v:pgv["order"].index(v["element_key"])
             )),
         }
+'''
 
 ## explicitly collect metadata relevant to IFS ensemble data.
 meta_nfdrs = {
-    ## metadata
-    "labels":{
-        **zattrs["labels"],
-        "itimes":itimes,
-        "vtimes":vtimes,
-        },
-
-    "nvtimes":zattrs["nvtimes"],
-
-    ## data normalization
-    "norm_bounds":zattrs["norm_bounds"],
-    "norm_res":zattrs["norm_resolution"],
-    "mask_val":zattrs["mask_val"],
-
-    ## labels
-    "long_labels":zattrs["long_labels"],
-    "short_labels":zattrs["short_labels"],
-
-    #"vector_toggle_state":zgrp.attrs["gefs"]["vector_toggle_state"],
+    "norm":zattrs["norm"],
+    "labels":zattrs["labels"],
+    "cmaps":{
+        **zattrs["cmaps"],
+        "cmaps":zgrp["cmaps"][...].tolist()
+        }
+    "menu":zattrs["menu"]
     }
 
-## color map metadata and concatenated color map array
-cmap_info = {
-    **zgrp.attrs["cmaps"],
-    "cmaps":zgrp["cmaps"][...].tolist(),
-    "default_bounds":zattrs["cmap_default_bounds"],
-    "default_name":zattrs["cmap_default_name"],
-    }
 
 """ ---( app initialization )--- """
 
@@ -95,35 +78,8 @@ def req_menu():
     """ endpoint for menu information (labels, time range, etc) """
     return meta_nfdrs
 
-@app.get("/cmaps")
-def req_cmaps():
-    """ endpoint for concatenated color maps array and its metadata """
-    return cmap_info
-
+'''
 @app.get("/plots")
 def req_plots():
     return plot_info
-
-'''
-@app.get("/regionmap/raster")
-def req_region_map_raster():
-    return Response(
-        content=rm_raster.tobytes(),
-        media_type="application/octet-stream",
-        headers={
-            "Content-Type":"application/octet-stream",
-            "Content-Length":str(rm_raster.nbytes),
-            }
-        )
-
-@app.get("/regionmap/borders")
-def req_region_map_borders():
-    return Response(
-        content=rm_borders.tobytes(),
-        media_type="application/octet-stream",
-        headers={
-            "Content-Type":"application/octet-stream",
-            "Content-Length":str(rm_borders.nbytes),
-            }
-        )
 '''
