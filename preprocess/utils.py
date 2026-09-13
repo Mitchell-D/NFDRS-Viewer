@@ -450,12 +450,18 @@ class RelationalConfig:
         if query_dict == {} and len(self.store) == 1:
             return self.store[0][1]
 
+        singleton = None
         for key_dict, value in self.store:
             # Count exact key-value pair matches
             score = sum(
                 1 for k,v in key_dict.items()
                 if query_dict.get(k) == v
                 )
+            if len(key_dict.keys()) == 0:
+                if not singleton is None:
+                    raise ValueError(
+                        "RelationalConfig can have at most one singleton")
+                singleton = value
 
             if score > max_score:
                 max_score = score
@@ -465,9 +471,12 @@ class RelationalConfig:
                 is_tie = True
 
         if max_score == 0:
-            raise KeyError(
-                "No config found sharing query properties:", query_dict
-                )
+            if singleton is None:
+                raise KeyError(
+                    "No config found sharing query properties:", query_dict
+                    )
+            else:
+                return singleton
 
         if is_tie:
             raise AmbiguousMatchError(
@@ -477,3 +486,16 @@ class RelationalConfig:
 
         return best_value
 
+    def get_all(self, query_dict):
+        """
+        return all store entries that share the query_dict's properties
+        """
+        matches = []
+        for sk,sv in self.store:
+            match = all(
+                qk in sk.keys() and qv == sk[qk]
+                for qk,qv in query_dict.items()
+                )
+            if match:
+                matches.append([sk, sv])
+        return matches

@@ -95,6 +95,13 @@ menu_args = {
     #"mtype":["itime", "variable"],
     }
 
+menu_defaults = {
+    "variable":[[{}, "dfm"]],
+    "timelag":[[{}, "1h"]],
+    "model":[[{}, "grass"]],
+    "mtype":[[{}, "herb"]],
+    }
+
 ## frontend configuration consists of all l
 fuel_models = ["grass", "shrub", "brush", "timber", "slash"]
 labels = {

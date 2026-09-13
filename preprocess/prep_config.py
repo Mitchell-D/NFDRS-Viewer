@@ -151,6 +151,7 @@ if __name__=="__main__":
         ## iterate until all menus are resolved
         while len(unresolved):
             got_one = False
+            print()
             for k,a in args.items():
                 ## if already resolved, skip
                 if k in resolved.keys():
@@ -205,9 +206,32 @@ if __name__=="__main__":
                     new_cstor.append((ck, ordered + alphabetic))
                 else:
                     new_cstor.append((ck, cfg_order(cv)))
-                print(new_cstor[-1])
             resolved[k].store = new_cstor
 
+        defaults = {}
+        for mk,rc in resolved.items():
+            print()
+            print(rc.store)
+            defs = RelationalConfig()
+            if not mk in config.menu_defaults.keys():
+                for sig,menu in rc.store:
+                    defs.set(sig, menu[0])
+            else:
+                cdefs = RelationalConfig()
+                for csig,cd in config.menu_defaults[mk]:
+                    matches = rc.get_all(csig)
+                    assert len(matches) > 0, "No menu options associated " + \
+                        f"with default configuration for {csig}"
+
+                    for nk,nv in matches:
+                        assert cd in nv, f"configured default {cd} not" \
+                            f"in options under {nk}: ({nv})"
+                        cdefs.set(nk, cd)
+                for msig,_ in rc.store:
+                    print(cdefs.store, msig)
+                    print(msig, cdefs.get(msig))
+                    defs.set(msig, cdefs.get(msig))
+            defaults[mk] = defs
 
         array_paths = RelationalConfig()
         for ar in arrs:
@@ -218,6 +242,7 @@ if __name__=="__main__":
                 "options":{k:m.store for k,m in resolved.items()},
                 "arrays":array_paths.store,
                 "triggers":trigs,
+                "defaults":{k:m.store for k,m in defaults.items()},
                 }
             })
 

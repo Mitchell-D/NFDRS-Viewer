@@ -3,20 +3,46 @@ class for storing and querying k/v configurations based on shared properties.
 */
 export class ConfigManager {
     constructor(store=null) {
-        this.store = [];
-        if (store !== null) {
-            for (const [sig,opts] in store) {
-                this.set(sig, opts);
+        const sigs = [];
+        if (store === null) {
+            this.store = [];
+        } else {
+            for (const entry of store) {
+                if (entry.length !== 2) {
+                    throw new Error(
+                        "Store entry must be 2-array [key_sig, value]");
+                }
+                const exists = sigs.some(s => {
+                    if (
+                        Object.keys(s).length
+                        !== Object.keys(entry[0]).length
+                    ) {
+                        return false;
+                    }
+                    return Object.entries(s).every(kv => {
+                        entry[0].hasOwnProperty(kv[0])
+                            && (kv[1] == entry[0][kv[0]]);
+                    });
+                });
+                if (exists) {
+                    throw new Error("Already exists in config:", entry);
+                }
+                sigs.push(entry[0]);
             }
+            // keep the actual reference to the object so it can be
+            // modified externally... dangerous but useful.
+            this.store = store;
         }
+        console.log(store);
+        console.log(this.store);
     }
 
     // add, update, or overwrite a configuration mapping
     set(sig, value) {
         const existing = this.store.find(entry => {
-            const keysA = Object.keys(entry.key);
-            const keysB = Object.keys(sig);
-            if (keysA.length !== keysB.length) return false;
+            const ka = Object.keys(entry[0]);
+            const kb = Object.keys(sig);
+            if (ka.length !== kb.length) return false;
             return keysA.every(k => {
                 sig.hasOwnProperty(k) && entry.key[k] === sig[k]
             });
@@ -25,7 +51,7 @@ export class ConfigManager {
         if (existing) {
             existing.value = value;
         } else {
-            this.store.push({ key: sig, value });
+            this.store.push([sig, value]);
         }
     }
 
@@ -39,10 +65,10 @@ export class ConfigManager {
             return this.store[0][1];
         }
 
-        for (const entry of this.store) {
+        for (const [sk,sv] of this.store) {
             let score = 0;
 
-            for (const [key, val] of Object.entries(entry.key)) {
+            for (const [key, val] of Object.entries(sk)) {
                 if (query_sig[key] === val) {
                     score++;
                 }
@@ -50,7 +76,7 @@ export class ConfigManager {
 
             if (score > max_score) {
                 max_score = score;
-                best_value = entry.value;
+                best_value = sv;
                 is_tie = false;
             } else if (score > 0 && score === max_score) {
                 is_tie = true;

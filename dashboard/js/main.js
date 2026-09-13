@@ -227,9 +227,11 @@ const meta_loaded = fetch(state.urls.meta)
 const menus_ready = meta_loaded
     .then(() => {
         for (const mk in state.menus.options) {
-            state.configs[mk] = new ConfigManager(state.menus[mk]);
+            state.configs[mk] = new ConfigManager(state.menus.options[mk]);
         }
-        console.log(state.configs);
+        for (const ce of Object.entries(state.configs)) {
+            console.log(ce[0], ce[1].store);
+        }
         /*
         MENU_ITIME = new Menu({
             container_id:state.dom.c_menu_itime,
