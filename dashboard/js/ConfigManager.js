@@ -33,8 +33,6 @@ export class ConfigManager {
             // modified externally... dangerous but useful.
             this.store = store;
         }
-        console.log(store);
-        console.log(this.store);
     }
 
     // add, update, or overwrite a configuration mapping
@@ -43,13 +41,14 @@ export class ConfigManager {
             const ka = Object.keys(entry[0]);
             const kb = Object.keys(sig);
             if (ka.length !== kb.length) return false;
-            return keysA.every(k => {
-                sig.hasOwnProperty(k) && entry.key[k] === sig[k]
+            return ka.every(k => {
+                return sig.hasOwnProperty(k) && entry[0][k] == sig[k]
             });
         });
 
+
         if (existing) {
-            existing.value = value;
+            existing[1] = value;
         } else {
             this.store.push([sig, value]);
         }
@@ -61,7 +60,12 @@ export class ConfigManager {
         let best_value = undefined;
         let is_tie = false;
 
-        if (this.store.length == 0 && query_sig == {}) {
+        // handle single configuration that applies to any conditions
+        if (
+            this.store.length === 1
+            && Object.keys(this.store[0][0]).length == 0
+            //&& Object.keys(query_sig).length == 0
+        ) {
             return this.store[0][1];
         }
 

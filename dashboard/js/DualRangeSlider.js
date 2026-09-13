@@ -333,7 +333,8 @@ export class DualRangeSlider {
             `${this.max_val_bnd}`, this.float_string_precision);
 
         // update the subscribers with the new selected bounds
-        this._notify_subscribers(this.min_val_bnd, this.max_val_bnd);
+        this.current_value = [this.min_val_bnd, this.max_val_bnd];
+        this._notify_subscribers(this.current_value);
     }
 
     set_bound(conditions, bound_value){
@@ -361,7 +362,7 @@ export class DualRangeSlider {
         this.subscriptions.push(callback);
     }
 
-    _notify_subscribers(min, max) {
-        this.subscriptions.forEach(f=>f(min, max));
+    _notify_subscribers(cur) {
+        this.subscriptions.forEach(f=>f(cur));
     }
 }

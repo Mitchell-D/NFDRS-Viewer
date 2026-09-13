@@ -5,9 +5,15 @@ number of conditions.
 labels and defaults are expected to be instances of ConfigManager.
 
 update provides a new set of conditions (as a key-value object) to the menu
-and changes it accordingly.
+and changes it accordingly. If invalid conditions are provided, the menu enters
+a disabled state until updated with valid conditions.
+
+NOTE: it is assumed that all direct children of container_id that have a
+<button/> tag are menu entries, and are cleared as such when the menu is
+disabled. Make sure that anything (ie label tags) inside the container don't
+have buttons as a child.
 */
-export class Menu {
+export class ButtonMenu {
     // save the state as a private property so it's individual to instances
     #state = {
         subscriptions:[],
@@ -22,7 +28,8 @@ export class Menu {
         button_template_id, // dom template that will be copied for buttons
         labels, // ConfigManager instance returning arrays of labels
         defaults, // ConfigManager instance returning default selections
-        initial_conditions={}, // object of starting conditions
+        parent_node_id=null, // outer ID set to display:none when disabled
+        initial_conditions=null, // object of starting conditions
         long_labels={}, // mapping from label strings to long label strings
         class_active="btn-primary",
         class_inactive="btn-secondary",
@@ -37,6 +44,10 @@ export class Menu {
             }
             this.conditional_container = true;
         }
+        this.parent_node = null;
+        if (parent_node_id !== null) {
+            this.parent_node = document.getElementById(parent_node_id);
+        }
         this.button_template = document.getElementById(button_template_id);
         this.class_active = class_active;
         this.class_inactive = class_inactive;
@@ -45,11 +56,13 @@ export class Menu {
         this.defaults = defaults;
         this.long_labels = long_labels;
         this.buttons = {};
+        this.is_disabled = false;
 
-        // set the menu according to the default conditions
-        this.current_conditions = initial_conditions;
-        this.current_value = this.defaults.get(this.current_conditions);
-        this.update(this.current_conditions);
+        this.current_value = undefined;
+        // set the menu according to the default conditions if provided
+        if (initial_conditions !== null) {
+            this.update(initial_conditions);
+        }
     }
 
     // update the defaults property with the most recent selection
@@ -58,11 +71,65 @@ export class Menu {
     }
 
     update(conditions={}) {
-        this.current_conditions = conditions;
-        this._set_menu(
-            this.labels.get(conditions),
-            this.defaults.get(conditions),
-        );
+        try {
+            const label_array = this.labels.get(conditions);
+            const selected = this.defaults.get(conditions);
+
+            this.is_disabled = false;
+            this.current_conditions = conditions;
+            this._show_container();
+            this._set_menu(label_array, selected);
+        } catch (error) {
+            //console.log(error);
+            this._disable_menu();
+        }
+    }
+
+    _disable_menu() {
+        this.is_disabled = true;
+        this.current_value = undefined;
+        this._clear_buttons();
+        this._hide_container();
+        //this._notify_subscribers();
+    }
+
+    _clear_buttons() {
+        if (!this.conditional_container) {
+            for (const c of Array.from(this.container.children)) {
+                if (c.querySelector("button") !== null) c.remove();
+            }
+        } else {
+            for (const k in this.container) {
+                for (const c of Array.from(this.container[k].children)) {
+                    if (c.querySelector("button") !== null) c.remove();
+                }
+            }
+        }
+        this.buttons = {};
+    }
+
+    _hide_container() {
+        if (this.parent_node) {
+            this.parent_node.style.display = "none";
+        } else if (!this.conditional_container) {
+            this.container.style.display = "none";
+        } else {
+            for (const k in this.container) {
+                this.container[k].style.display = "none";
+            }
+        }
+    }
+
+    _show_container() {
+        if (this.parent_node) {
+            this.parent_node.style.display = "";
+        } else if (!this.conditional_container) {
+            this.container.style.display = "";
+        } else {
+            for (const k in this.container) {
+                this.container[k].style.display = "";
+            }
+        }
     }
 
     _set_menu(label_array, selected) {
@@ -70,6 +137,7 @@ export class Menu {
         if (!this.conditional_container) {
             for (const c of Array.from(this.container.children)) {
                 const tmp_btn = c.querySelector("button");
+                if (!tmp_btn) continue;
                 if (!label_array.includes(tmp_btn.value)) {
                     delete this.buttons[tmp_btn.value];
                     c.remove();
@@ -79,6 +147,7 @@ export class Menu {
             for (const k in this.container) {
                 for (const c of Array.from(this.container[k].children)) {
                     const tmp_btn = c.querySelector("button");
+                    if (!tmp_btn) continue;
                     if (!label_array.includes(tmp_btn.value)) {
                         delete this.buttons[tmp_btn.value];
                         c.remove();
@@ -106,6 +175,8 @@ export class Menu {
             // add a click callback to swap the state and notify subscribers
             const class_scope = this;
             tb.addEventListener("click", function() {
+                if (class_scope.is_disabled) return;
+
                 for (const bix in class_scope.buttons) {
                     const btn = class_scope.buttons[bix];
                     // swap button to active if its feature value matches
@@ -136,10 +207,13 @@ export class Menu {
         }
         // simulate clicking this button if it is the selected one,
         // thereby notifying any subscribers of the new value
-        this.buttons[selected].click();
+        if (this.buttons[selected]) {
+            this.buttons[selected].click();
+        }
     }
 
     select(key) {
+        if (this.is_disabled || !this.buttons[key]) return;
         this.buttons[key].click();
     }
 

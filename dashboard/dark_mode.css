@@ -4,6 +4,7 @@
     /*--background-color:#101b26;*/
     --background-color:#28282b;
     --border-color:#0aa356;
+    --nav-color:#2e3337;
 }
 html {
     background-color:var(--background-color);
@@ -13,11 +14,11 @@ body {
 }
 header {
     /*background-color:#241b18;*/
-    background-color:#2e3337;
+    background-color:var(--nav-color);
 }
 footer {
     /*background-color:#241b18;*/
-    background-color:#2e3337;
+    background-color:var(--nav-color);
 }
 .navbar-brand {
     color:var(--text-color);
@@ -140,5 +141,17 @@ svg path {
     color:var(--text-color);
 }
 .offcanvas-header button {
+    color:var(--text-color);
+}
+
+.modal-content {
+    background-color:var(--background-color);
+}
+.modal-header {
+    background-color:var(--nav-color);
+    color:var(--text-color);
+}
+.modal-footer {
+    background-color:var(--nav-color);
     color:var(--text-color);
 }

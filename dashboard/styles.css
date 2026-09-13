@@ -25,11 +25,19 @@ body {
     margin-top:.2em;
     margin-bottom:.2em;
 }
+.menu-flex-button-container {
+    width:128px;
+}
 #menu_container_itime {
     display:inline-flex;
     flex-wrap:wrap;
     justify-content:center;
     margin:.4em
+}
+.menu-itime-title {
+    font-size:1.2em;
+    margin-bottom:.2em;
+    margin-top:.2em;
 }
 .menu-button {
     width:80%;
@@ -349,4 +357,14 @@ svg text {
 }
 #dd_cmap_name {
     width:256px;
+}
+.modal-menu-label{
+    font-size:1.4em;
+    margin-bottom:.2em;
+    margin-top:.2em;
+}
+.modal-title {
+    font-size:1.4em;
+    margin-bottom:.2em;
+    margin-top:.2em;
 }

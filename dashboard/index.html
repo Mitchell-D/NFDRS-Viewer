@@ -72,8 +72,8 @@
         <main class="col-12 col-lg-12">
 
           <!-- itime selection -->
-          <div class="row">
-            <p class="menu-itime-title">GEFS Forecast Run</p>
+          <div class="row text-center">
+            <p class="menu-itime-title">HRRR Forecast Run</p>
           </div>
           <div class="row"><div id="menu_container_itime"></div></div>
 
@@ -102,216 +102,239 @@
     <footer class="mt-auto py-3">
     </footer>
 
-    <template id="data_module_template">
-      <div class="row">
-        <div class="col-md-7 main-col-center">
-          <div class="row">
-            <div class="col-md-12">
+    <!-- variable selection modal -->
+    <div class="modal" id="variable_modal" tabindex="-1" aria-labelledby="variable_modal_label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="variable_modal_label">Select Data</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="row modal-body">
+            <div id="menu_container_variable" class="modal-menu-container text-center">
+              <p class="modal-menu-label">Variable</p>
+            </div>
+            <div id="menu_container_model" class="modal-menu-container text-center">
+              <p class="modal-menu-label">Fuel Model</p>
+            </div>
+            <div id="menu_container_mtype" class="modal-menu-container text-center">
+              <p class="modal-menu-label">Fuel Type</p>
+            </div>
+            <div id="menu_container_timelag" class="modal-menu-container text-center">
+              <p class="modal-menu-label">Time Lag</p>
+            </div>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-primary w-50" data-bs-dismiss="modal">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <!-- itime selection -->
-              <div class="row">
-                <p class="menu-section-title"></p>
-              </div>
-              <div class="row">
-                  <div class="menu-container-itime"></div>
-              </div>
+  </body>
+  <template id="data_module_template">
+    <div class="row">
+      <div class="col-md-7 main-col-center">
+        <div class="row">
+          <div class="col-md-12">
 
-              <!-- main map -->
-              <div class="row">
-                <div class="flex-shrink-0 cbar-container">
+            <!-- itime selection -->
+            <div class="row">
+              <p class="menu-section-title"></p>
+            </div>
+            <div class="row">
+                <div class="menu-container-itime"></div>
+            </div>
+
+            <!-- main map -->
+            <div class="row">
+              <div class="flex-shrink-0 cbar-container">
+              </div>
+              <div class="flex-grow-1 map-container">
+                <div class="main-map-container">
+                  <p class="main-header-text">---</p>
+                  <p class="main-date-text">---</p>
                 </div>
-                <div class="flex-grow-1 map-container">
-                  <div class="main-map-container">
-                    <p class="main-header-text">---</p>
-                    <p class="main-date-text">---</p>
-                  </div>
-                </div>
               </div>
+            </div>
 
-              <div class="row" class="menu-cmap-row">
-                <!-- data bounds selection -->
-                <div class="col-md-6 menu-button-column">
-                  <div class="row justify-content-center">
-                    <p class="menu-section-title">Data Bounds</p>
-                  </div>
-                  <div class="row" class="cmap-slider-row">
+            <div class="row" class="menu-cmap-row">
+              <!-- data bounds selection -->
+              <div class="col-md-6 menu-button-column">
+                <div class="row justify-content-center">
+                  <p class="menu-section-title">Data Bounds</p>
+                </div>
+                <div class="row" class="cmap-slider-row">
 
-                    <!-- slider form -->
-                    <div class="slider-container">
-                      <!-- slider bar -->
-                      <div class="row" style="display:none;">
-                        <div class="col-md-6 text-center slider-label-container">
-                            Min: <span class="slider-label slider-label-min"></span>
+                  <!-- slider form -->
+                  <div class="slider-container">
+                    <!-- slider bar -->
+                    <div class="row" style="display:none;">
+                      <div class="col-md-6 text-center slider-label-container">
+                          Min: <span class="slider-label slider-label-min"></span>
+                      </div>
+                      <div class="col-md-6 text-center slider-label-container">
+                          Max: <span class="slider-label slider-label-max"></span>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="slider-track">
+                        <div class="slider-range"></div>
+                        <div class="slider-handle slider-handle-min"></div>
+                        <div class="slider-handle slider-handle-max"></div>
+                      </div>
+                    </div>
+
+                    <!-- slider text input -->
+                    <div class="row">
+                      <div class="col-6 text-center bounds-input-container">
+                        <div class="row justify-content-center">
+                          <input id="cslider_input_min" class="text-center slider-input-min"></input>
                         </div>
-                        <div class="col-md-6 text-center slider-label-container">
-                            Max: <span class="slider-label slider-label-max"></span>
+                        <div class="row justify-content-center">
+                          <label for="cslider_input_min">Min</label>
                         </div>
                       </div>
-                      <div class="row">
-                        <div class="slider-track">
-                          <div class="slider-range"></div>
-                          <div class="slider-handle slider-handle-min"></div>
-                          <div class="slider-handle slider-handle-max"></div>
+                      <div class="col-6 text-center bounds-input-container">
+                        <div class="row justify-content-center">
+                          <input id="cslider_input_max" class="text-center slider-input-max"></input>
                         </div>
-                      </div>
-
-                      <!-- slider text input -->
-                      <div class="row">
-                        <div class="col-6 text-center bounds-input-container">
-                          <div class="row justify-content-center">
-                            <input id="cslider_input_min" class="text-center slider-input-min"></input>
-                          </div>
-                          <div class="row justify-content-center">
-                            <label for="cslider_input_min">Min</label>
-                          </div>
-                        </div>
-                        <div class="col-6 text-center bounds-input-container">
-                          <div class="row justify-content-center">
-                            <input id="cslider_input_max" class="text-center slider-input-max"></input>
-                          </div>
-                          <div class="row justify-content-center">
-                            <label for="cslider_input_max">Max</label>
-                          </div>
+                        <div class="row justify-content-center">
+                          <label for="cslider_input_max">Max</label>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <!-- color map selection -->
-                <div class="col-md-6">
-                  <div class="row justify-content-center">
-                    <p class="menu-section-title">Color Map</p>
-                  </div>
-                  <div class="row dropdown">
-                    <button class="btn btn-primary dropdown-toggle dropdown-button menu-button dd-button-cmap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    </button>
-                    <ul class="dd-cmap-name dropdown-menu" aria-labelledby="dd_button_cmap"></ul>
-                  </div>
-                </div>
               </div>
 
-            </div>
-          </div>
-        </div>
-
-        <!-- right column -->
-        <div class="col-md-5 side-column main-col-right">
-          <div class="row" class="menu-cmap-row">
-            <div class="col-md-12 menu-button-column">
-
-              <!-- statistics figure -->
-              <div class="row" class="fig-stats-labels">
-                <div class="fig-stats-label-container">
-                  <p class="fig-label fig-stats-label-variable"></p>
-                  <p class="fig-label fig-stats-label-location"></p>
+              <!-- color map selection -->
+              <div class="col-md-6">
+                <div class="row justify-content-center">
+                  <p class="menu-section-title">Color Map</p>
+                </div>
+                <div class="row dropdown">
+                  <button class="btn btn-primary dropdown-toggle dropdown-button menu-button dd-button-cmap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  </button>
+                  <ul class="dd-cmap-name dropdown-menu" aria-labelledby="dd_button_cmap"></ul>
                 </div>
               </div>
-              <div class="row fig-stats-container"></div>
-
             </div>
+
           </div>
         </div>
       </div>
-    </template>
 
-    <template id="vertical_cbar_template">
-      <div class="d-flex cbar-container">
-            <div class="flex-shrink-0 cbar-axis-container-inner">
-              <svg class="cbar-axis"></svg>
+      <!-- right column -->
+      <div class="col-md-5 side-column main-col-right">
+        <div class="row" class="menu-cmap-row">
+          <div class="col-md-12 menu-button-column">
+
+            <!-- statistics figure -->
+            <div class="row" class="fig-stats-labels">
+              <div class="fig-stats-label-container">
+                <p class="fig-label fig-stats-label-variable"></p>
+                <p class="fig-label fig-stats-label-location"></p>
+              </div>
             </div>
-            <div class="flex-grow-1 cbar-canvas-container-inner">
-              <canvas class="cbar-canvas"></canvas>
-            </div>
-      </div>
-    </template>
+            <div class="row fig-stats-container"></div>
 
-    <template id="menu_flex_button_temp">
-      <div class="menu-button-container menu-flex-button-container">
-        <button type="button" class="btn btn-secondary menu-flex-button"></button>
-      </div>
-    </template>
-
-    <template id="menu_button_temp">
-      <div class="row menu-button-container">
-        <button type="button" class="btn btn-secondary menu-button"></button>
-      </div>
-    </template>
-
-    <!-- general drop-down menu template -->
-
-    <template id="dropdown_temp">
-      <div class="menu-button-container">
-        <li><button class="dropdown-item btn-secondary" href="#"></button></li>
-      </div>
-    </template>
-
-    <template id="split_dropdown_temp">
-      <li>
-        <a class="dropdown-item" href="#">
-            <div class="row">
-                <div class="col-md-6 split-dd-text"></div>
-                <div class="col-md-6 split-dd-image"></div>
-            </div>
-        </a>
-      </li>
-    </template>
-
-    <!-- frame ticker template -->
-
-    <template id="toggle_button_template">
-        <button type="button" class="btn btn-secondary toggle-button"/>
-    </template>
-
-    <template id="ticker_template">
-        <div id="" class="buffer-ticker buffer-ticker-disabled"></div>
-    </template>
-
-    <!-- map click tooltip template -->
-
-    <template id="tooltip_template">
-      <div id="tooltip_container_inner" class="tooltip-text">
-        <div id="tooltip_button_close">
-          <i class="fa-solid fa-circle-xmark"></i>
-        </div>
-        <p id="tooltip_location" class="tooltip-text"></p>
-        <p id="tooltip_value" class="tooltip-text"></p>
-        <button id="tooltip_button_timeseries" class="btn tooltip-text">Generate Time Series</button>
-      </div>
-    </template>
-
-    <template id="buffer_slider_template">
-      <div class="buffer-slider-track buffer-slider-track-inactive">
-        <div class="buffer-slider-fill">
-        </div>
-        <div class="buffer-slider-thumb">
+          </div>
         </div>
       </div>
-    </template>
+    </div>
+  </template>
 
-    <template id="time_series_chiclet_template">
-      <div class="time-series-chiclet-container d-inline-block">
-        <div class="time-series-chiclet-dow-container">
-          <p class="time-series-chiclet-dow"></p>
-        </div>
-        <div class="time-series-chiclet-date-container">
-          <p class="time-series-chiclet-date"></p>
-        </div>
-        <div class="time-series-chiclet-data-container">
-          <p class="time-series-chiclet-data"></p>
-        </div>
+  <template id="vertical_cbar_template">
+    <div class="d-flex cbar-container">
+          <div class="flex-shrink-0 cbar-axis-container-inner">
+            <svg class="cbar-axis"></svg>
+          </div>
+          <div class="flex-grow-1 cbar-canvas-container-inner">
+            <canvas class="cbar-canvas"></canvas>
+          </div>
+    </div>
+  </template>
+
+  <template id="menu_flex_button_temp">
+    <div class="menu-button-container menu-flex-button-container">
+      <button type="button" class="btn btn-secondary menu-flex-button"></button>
+    </div>
+  </template>
+
+  <template id="menu_button_temp">
+    <div class="row menu-button-container">
+      <button type="button" class="btn btn-secondary menu-button"></button>
+    </div>
+  </template>
+
+  <!-- general drop-down menu template -->
+
+  <template id="dropdown_temp">
+    <div class="menu-button-container">
+      <li><button class="dropdown-item btn-secondary" href="#"></button></li>
+    </div>
+  </template>
+
+  <template id="split_dropdown_temp">
+    <li>
+      <a class="dropdown-item" href="#">
+          <div class="row">
+              <div class="col-md-6 split-dd-text"></div>
+              <div class="col-md-6 split-dd-image"></div>
+          </div>
+      </a>
+    </li>
+  </template>
+
+  <!-- frame ticker template -->
+
+  <template id="toggle_button_template">
+      <button type="button" class="btn btn-secondary toggle-button"/>
+  </template>
+
+  <template id="ticker_template">
+      <div id="" class="buffer-ticker buffer-ticker-disabled"></div>
+  </template>
+
+  <!-- map click tooltip template -->
+
+  <template id="tooltip_template">
+    <div id="tooltip_container_inner" class="tooltip-text">
+      <div id="tooltip_button_close">
+        <i class="fa-solid fa-circle-xmark"></i>
       </div>
-    </template>
+      <p id="tooltip_location" class="tooltip-text"></p>
+      <p id="tooltip_value" class="tooltip-text"></p>
+      <button id="tooltip_button_timeseries" class="btn tooltip-text">Generate Time Series</button>
+    </div>
+  </template>
 
-    <script type="module" src="js/main.js" async></script>
-    <script src="pkgs/popper.min.js"></script>
-    <script src="pkgs/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
-    <!--
-    <script src="pkgs/highcharts/highcharts.js"></script>
-    <script src="pkgs/highcharts/highcharts-more.js"></script>
-    <script src="pkgs/highcharts/modules/exporting.js"></script>
-    <script src="pkgs/highcharts/modules/export-data.js"></script>
-    <script src="pkgs/highcharts/themes/adaptive.js"></script>
-    -->
-  </body>
+  <template id="buffer_slider_template">
+    <div class="buffer-slider-track buffer-slider-track-inactive">
+      <div class="buffer-slider-fill">
+      </div>
+      <div class="buffer-slider-thumb">
+      </div>
+    </div>
+  </template>
+
+  <template id="time_series_chiclet_template">
+    <div class="time-series-chiclet-container d-inline-block">
+      <div class="time-series-chiclet-dow-container">
+        <p class="time-series-chiclet-dow"></p>
+      </div>
+      <div class="time-series-chiclet-date-container">
+        <p class="time-series-chiclet-date"></p>
+      </div>
+      <div class="time-series-chiclet-data-container">
+        <p class="time-series-chiclet-data"></p>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="js/main.js" async></script>
+  <script src="pkgs/popper.min.js"></script>
+  <script src="pkgs/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
+
 </html>

@@ -76,7 +76,7 @@ norm = [
 ## menu keys that trigger updates to each dependent menu
 menu_triggers = {
     "itime":[],
-    "feat":["itime"],
+    "variable":[],
     "timelag":["variable"],
     "model":["variable"],
     "mtype":["variable"],
@@ -97,9 +97,9 @@ menu_args = {
 
 menu_defaults = {
     "variable":[[{}, "dfm"]],
-    "timelag":[[{}, "1h"]],
-    "model":[[{}, "grass"]],
-    "mtype":[[{}, "herb"]],
+    "timelag":[[{"variable":"dfm"}, "1h"]],
+    "model":[[{"variable":vk}, "grass"] for vk in ["ic", "bi", "erc", "sc"]],
+    "mtype":[[{"variable":"mc"}, "herb"]],
     }
 
 ## frontend configuration consists of all l
@@ -125,8 +125,9 @@ labels = {
             "brush":"Brush Model",
             "timber":"Timber Model",
             "slash":"Slash Model",
-            "herb":"Herbaceous Moisture Content",
-            "wood":"Woody Moisture Content",
+            "mc":"Moisture Content",
+            "herb":"Herbaceous",
+            "wood":"Woody",
             "gsi":"Growing Season Index",
             "kbdi":"Keetch-Byram Drought Index",
         },
@@ -341,7 +342,7 @@ backend = {
         "menu_order":{
             "timelag":lambda ts:list(sorted(ts))[::-1],
             "model":["grass", "shrub", "brush", "timber", "slash"],
-            "variable":["kbdi", "gsi", "dfm", "ic", "sc", "mc", "erc", "bi"],
+            "variable":["kbdi", "gsi", "dfm", "mc", "ic", "sc", "erc", "bi"],
             },
     }
 

@@ -242,6 +242,7 @@ if __name__=="__main__":
                 "options":{k:m.store for k,m in resolved.items()},
                 "arrays":array_paths.store,
                 "triggers":trigs,
+                "arguments":args,
                 "defaults":{k:m.store for k,m in defaults.items()},
                 }
             })

@@ -1,6 +1,7 @@
 import { Map } from "./Map.js";
 //import { ColorBar } from "./ColorBar.js";
-import { Menu } from "./Menu.js";
+import { ButtonMenu } from "./ButtonMenu.js";
+import { MenuManager } from "./MenuManager.js";
 //import { DualRangeSlider } from "./DualRangeSlider.js";
 //import { EToRasterBuffer } from "./EToRasterBuffer.js";
 import { BufferSlider } from "./BufferSlider.js";
@@ -15,11 +16,25 @@ import { ConfigManager } from "./ConfigManager.js";
 
 const state = {
     dom:{
-        c_menu_itime:"menu_container_itime",
+        menu_containers:{
+            itime:"menu_container_itime",
+            variable:"menu_container_variable",
+            model:"menu_container_model",
+            mtype:"menu_container_mtype",
+            timelag:"menu_container_timelag",
+        },
+        menu_button_templates:{
+            itime:"menu_flex_button_temp",
+            variable:"menu_button_temp",
+            model:"menu_button_temp",
+            mtype:"menu_button_temp",
+            timelag:"menu_button_temp",
+        },
         c_buffer_slider:"main_container_buffer_slider",
         c_data_modules:"data_module_container",
         b_new_data_module:"btn_new_data_module",
-        t_menu_button:"menu_button_temp"
+        t_menu_flex_button:"menu_flex_button_temp",
+        id_variable_modal:"variable_modal",
 
         /*
         text_main_feat:"main_header_text",
@@ -59,11 +74,25 @@ const state = {
     norm:null,
     labels:null,
     cmaps:null,
-    menus:null,
+    menu:{
+        options:{},
+        defaults:{},
+        menus:{},
+        triggers:{},
+        args:{},
+        init_conditions:{
+            itime:{},
+            variable:{},
+        },
+        manager:null,
+    },
     configs:{},
     urls:{
         meta:"api/meta",
     },
+
+    vmodal:null,
+    vmodal_node:null,
     /*
     sel:{
         region:"southeast",
@@ -165,7 +194,6 @@ const dom_ready = new Promise(resolve => {
 let MAP = null; // main map
 let MENU_REGION = null; // init time menu
 let MAP_REGION = null;
-let MENU_ITIME = null; // init time menu
 let MENU_FEAT = null; // feature button menu
 let MENU_PGROUP = null; // feature button menu
 let MENU_METRIC = null; // metric button menu
@@ -175,6 +203,7 @@ let MAIN_CBAR = null;
 let PLOT_STATS = null;
 let CHICLETS = null;
 */
+let MENU_ITIME = null; // init time menu
 let RASTER_BUFFER = null;
 let BUFFER_SLIDER = null;
 
@@ -207,11 +236,16 @@ const meta_loaded = fetch(state.urls.meta)
         state.norm = r["norm"];
         state.labels = r["labels"];
         state.cmaps = r["cmaps"];
-        state.menus = r["menu"];
-        console.log(state.norm);
-        console.log(state.labels);
-        console.log(state.cmaps);
-        console.log(state.menus);
+
+        // parse menus into ConfigManager objects
+        for (const mk in r["menu"]["options"]) {
+            state.menu.options[mk] = new ConfigManager(
+                r["menu"]["options"][mk]);
+            state.menu.defaults[mk] = new ConfigManager(
+                r["menu"]["defaults"][mk]);
+            state.menu.triggers[mk] = r["menu"]["triggers"][mk];
+            state.menu.args[mk] = r["menu"]["arguments"][mk];
+        }
 
         // convert cmap arrays to Uint8ClampedArray objects
         const cmarrs = {};
@@ -222,28 +256,55 @@ const meta_loaded = fetch(state.urls.meta)
                 state.cmaps["arrs"].slice(ix0,ixf));
         }
         state.cmaps["arrs"] = cmarrs;
+
+        console.log("initial meta request");
+        console.log("norm", state.norm);
+        console.log("labels", state.labels);
+        console.log("cmaps", state.cmaps);
+        console.log("menu options", state.menu.options);
+        console.log("menu defaults", state.menu.defaults);
+        console.log();
     });
 
 const menus_ready = meta_loaded
     .then(() => {
-        for (const mk in state.menus.options) {
-            state.configs[mk] = new ConfigManager(state.menus.options[mk]);
+        state.menu.menus = {};
+        state.menu.manager = new MenuManager();
+        const menu_order = ["itime", "variable", "model", "mtype", "timelag"];
+        for (const mk of menu_order) {
+            state.menu.menus[mk] = new ButtonMenu({
+                container_id:state.dom.menu_containers[mk],
+                button_template_id:state.dom.menu_button_templates[mk],
+                labels:state.menu.options[mk],
+                defaults:state.menu.defaults[mk],
+                //initial_conditions:{},
+                long_labels:state.labels.long_labels,
+                class_active:"btn-primary",
+                class_inactive:"btn-secondary",
+            });
+            state.menu.manager.add_menu({
+                menu_key:mk,
+                menu:state.menu.menus[mk],
+                triggers:state.menu.triggers[mk],
+                args:state.menu.args[mk],
+            });
         }
-        for (const ce of Object.entries(state.configs)) {
-            console.log(ce[0], ce[1].store);
-        }
-        /*
-        MENU_ITIME = new Menu({
-            container_id:state.dom.c_menu_itime,
-            button_template_id:state.dom.t_menu_button,
-            labels:state.labels.regions,
-            defaults:state.sel.region,
-            initial_conditions:[],
-            long_labels:state.long_labels.regions,
-            class_active:"btn-primary",
-            class_inactive:"btn-secondary",
+        state.menu.menus["itime"].update();
+        state.menu.menus["variable"].update();
+
+        state.vmodal_node = document.getElementById(
+            state.dom.id_variable_modal);
+        state.vmodal = new bootstrap.Modal(state.vmodal_node);
+        const vmodal_button = document.getElementById(
+            state.dom.b_new_data_module);
+        vmodal_button.addEventListener("click", () => {
+            console.log("adding new data module");
+            state.vmodal.show();
         });
-        */
+        console.log(state.vmodal);
+        state.vmodal_node.addEventListener("hide.bs.modal", (e) => {
+            console.log(state.menu.manager.get_state());
+        });
     });
 
 /*
