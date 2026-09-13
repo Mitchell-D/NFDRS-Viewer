@@ -30,10 +30,23 @@ const state = {
             mtype:"menu_button_temp",
             timelag:"menu_button_temp",
         },
+        data_module:{
+            c_cbar:"cbar-container",
+            c_map:"map-container",
+            c_fig:"fig-stats-container",
+            c_fig_labels:"fig-stats-labels",
+            c_fig_label_variable:"fig-stats-label-variable",
+            c_fig_label_location:"fig-stats-label-location",
+            p_main_label:"main-header-text",
+            b_set_variable:"btn-set-variable",
+            b_cmap:"dd-button-cmap",
+        },
         c_buffer_slider:"main_container_buffer_slider",
         c_data_modules:"data_module_container",
         b_new_data_module:"btn_new_data_module",
+        b_modal_cancel:"variable_modal_cancel",
         t_menu_flex_button:"menu_flex_button_temp",
+        t_data_module:"data_module_template",
         id_variable_modal:"variable_modal",
 
         /*
@@ -179,6 +192,9 @@ const state = {
     render_cooldown_ms:50,
 
     dows:["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+
+    asking_variable:false,
+    resolve_ask:null,
 }
 
 // make a promise for when the DOM is loaded
@@ -228,6 +244,30 @@ function update_main_labels() {
     }
 }
 */
+
+function ask_for_variable() {
+    if (state.asking_variable) {
+        throw new Error("user is already selectign variable");
+    }
+    state.asking_variable = true;
+    return new Promise((resolve, reject) => {
+        state.resolve_ask = resolve;
+        state.vmodal.show();
+    }).then((res) => {
+        state.resolve_ask = null;
+        state.asking_variable = false;
+        return res;
+    });
+}
+
+function new_data_module() {
+    console.log("adding new data module");
+    const sig = ask_for_variable().then((res) => {
+        // ignore if the user didn't respond
+        if (res === null) return;
+        console.log("got signature:", res);
+    });
+}
 
 // explicitly unpack metadata so there's no ambiguity
 const meta_loaded = fetch(state.urls.meta)
@@ -298,12 +338,17 @@ const menus_ready = meta_loaded
         const vmodal_button = document.getElementById(
             state.dom.b_new_data_module);
         vmodal_button.addEventListener("click", () => {
-            console.log("adding new data module");
-            state.vmodal.show();
+            new_data_module();
         });
-        console.log(state.vmodal);
         state.vmodal_node.addEventListener("hide.bs.modal", (e) => {
-            console.log(state.menu.manager.get_state());
+            // ignore the manager state if the close button was used.
+            if (
+                e.explicitOriginalTarget
+                === document.getElementById(state.dom.b_modal_cancel)
+            ) {
+                state.resolve_ask(null);
+            }
+            state.resolve_ask(state.menu.manager.get_state());
         });
     });
 

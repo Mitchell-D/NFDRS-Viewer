@@ -108,7 +108,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="variable_modal_label">Select Data</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button id="variable_modal_cancel" type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="row modal-body">
             <div id="menu_container_variable" class="modal-menu-container text-center">
@@ -138,14 +138,6 @@
         <div class="row">
           <div class="col-md-12">
 
-            <!-- itime selection -->
-            <div class="row">
-              <p class="menu-section-title"></p>
-            </div>
-            <div class="row">
-                <div class="menu-container-itime"></div>
-            </div>
-
             <!-- main map -->
             <div class="row">
               <div class="flex-shrink-0 cbar-container">
@@ -153,7 +145,7 @@
               <div class="flex-grow-1 map-container">
                 <div class="main-map-container">
                   <p class="main-header-text">---</p>
-                  <p class="main-date-text">---</p>
+                  <!--<p class="main-date-text">---</p>-->
                 </div>
               </div>
             </div>
@@ -189,18 +181,18 @@
                     <div class="row">
                       <div class="col-6 text-center bounds-input-container">
                         <div class="row justify-content-center">
-                          <input id="cslider_input_min" class="text-center slider-input-min"></input>
-                        </div>
-                        <div class="row justify-content-center">
-                          <label for="cslider_input_min">Min</label>
+                          <label>
+                            Min
+                            <input class="text-center slider-input-min"></input>
+                          </label>
                         </div>
                       </div>
                       <div class="col-6 text-center bounds-input-container">
                         <div class="row justify-content-center">
-                          <input id="cslider_input_max" class="text-center slider-input-max"></input>
-                        </div>
-                        <div class="row justify-content-center">
-                          <label for="cslider_input_max">Max</label>
+                          <label>
+                            Max
+                            <input class="text-center slider-input-max">
+                          </label>
                         </div>
                       </div>
                     </div>
@@ -227,19 +219,19 @@
 
       <!-- right column -->
       <div class="col-md-5 side-column main-col-right">
-        <div class="row" class="menu-cmap-row">
-          <div class="col-md-12 menu-button-column">
 
-            <!-- statistics figure -->
-            <div class="row" class="fig-stats-labels">
-              <div class="fig-stats-label-container">
-                <p class="fig-label fig-stats-label-variable"></p>
-                <p class="fig-label fig-stats-label-location"></p>
-              </div>
-            </div>
-            <div class="row fig-stats-container"></div>
-
+        <!-- statistics figure -->
+        <div class="row" class="fig-stats-labels">
+          <div class="fig-stats-label-container">
+            <p class="fig-label fig-stats-label-variable"></p>
+            <p class="fig-label fig-stats-label-location"></p>
           </div>
+        </div>
+        <div class="row fig-stats-container"></div>
+        <div class="row set-variable-container">
+          <button class="btn-set-variable btn btn-primary w-50" type="button">
+            Change Data
+          </button>
         </div>
       </div>
     </div>
